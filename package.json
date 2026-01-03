@@ -12,8 +12,6 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint ."
 	},
-	"keywords": [],
-	"license": "MIT",
 	"engines": {
 		"node": ">=18.18.0"
 	},

@@ -1,5 +1,5 @@
 import { TFile, TFolder } from "obsidian";
 
-export function isFileItemFile(item: TFile | TFolder): item is TFile {
-  return (item as TFile).extension != null;
+export function isFileItem(item: TFile | TFolder): item is TFile {
+	return item instanceof TFile;
 }

@@ -1,117 +1,115 @@
-import { FileExplorer } from "obsidian";
-// eslint-disable-next-line import/no-cycle
 import { SampleSettingTab } from "./settings/SampleSettingTab";
+import { App, FileExplorer, PluginManifest, View } from "obsidian";
 import { FileTreeNavSettings } from "./settings/FileTreeNavSettings";
-import {
-  collapseAllFolders,
-  cloneFile,
-  createNewItem,
-  onKeyArrowDown,
-  onKeyArrowUp,
-  showContextMenu,
-  splitRight,
-} from "./actions";
+import { Actions } from "./actions";
 
 export default class FileTreeNav extends FileTreeNavSettings {
-  async onload() {
-    await this.loadSettings();
+	private actions: Actions;
 
-    this.addSettingTab(new SampleSettingTab(this));
-    this.registerDomEvent(document, "keydown", this.handleKeyPressOnDocument);
-  }
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+		this.actions = new Actions(app);
+	}
 
-  onunload() {}
+	public async onload(): Promise<void> {
+		await this.loadSettings();
 
-  handleKeyPressOnDocument = (event: KeyboardEvent) => {
-    if (this.isShouldHandleKeyPress()) {
-      event.stopImmediatePropagation();
-      this.handleKeyPressOnFileExplorer(event);
-    }
-  };
+		this.addSettingTab(new SampleSettingTab(this));
+		this.registerDomEvent(document, "keydown", this.handleKeyPressIfNeeded);
+	}
 
-  isShouldHandleKeyPress = (): boolean => {
-    // TODO: not sure about this selector. Perhaps can affect custom views
-    const isFileExplorerFocused =
-      this.app.workspace.activeLeaf?.view.getViewType() === "file-explorer";
+	/**
+	 * NOTE: the event handler will be detached by `registerDomEvent`.
+	 */
+	public onunload() {}
 
-    if (!isFileExplorerFocused) {
-      return false;
-    }
+	private handleKeyPressIfNeeded = async (event: KeyboardEvent): Promise<void> => {
+		if (this.shouldHandleKeyPress()) {
+			event.stopImmediatePropagation();
+			this.handleKeyPress(event).catch(console.error); // TODO: should handle errors?
+		}
+	};
 
-    const isPopupOpen = !!document.querySelector(".modal");
-    const isInputFocused =
-      document.activeElement?.classList.contains("is-being-renamed") ||
-      document.activeElement?.tagName === "INPUT" ||
-      document.activeElement?.getAttribute("contenteditable") === "true";
+	private shouldHandleKeyPress = (): boolean => {
+		const isFileExplorerFocused =
+			this.app.workspace.getActiveViewOfType(View)?.getViewType() === "file-explorer";
 
-    return !isInputFocused && !isPopupOpen;
-  };
+		if (!isFileExplorerFocused) {
+			return false;
+		}
 
-  handleKeyPressOnFileExplorer = (event: KeyboardEvent): void => {
-    const fileExplorer = this.app.workspace.activeLeaf?.view as FileExplorer;
+		const isSomeInputFocused =
+			document.activeElement?.classList.contains("is-being-renamed") ||
+			document.activeElement?.tagName === "INPUT" ||
+			document.activeElement?.getAttribute("contenteditable") === "true";
 
-    if (event.shiftKey) {
-      switch (event.code) {
-        case "KeyZ": {
-          collapseAllFolders(this.app);
-          break;
-        }
-        default:
-      }
+		if (isSomeInputFocused) {
+			return false;
+		}
 
-      return;
-    }
+		const isSomePopupOpen = Boolean(document.querySelector(".modal"));
 
-    if (event.altKey) {
-      switch (event.code) {
-        case "KeyK": {
-          showContextMenu(this.app);
-          break;
-        }
-        default:
-      }
-      return;
-    }
+		return !isSomePopupOpen;
+	};
 
-    switch (event.code) {
-      case "ContextMenu": {
-        event.preventDefault();
-        showContextMenu(this.app);
-        break;
-      }
-      case "KeyJ": {
-        onKeyArrowDown(this.app, event);
-        break;
-      }
-      case "KeyK": {
-        onKeyArrowUp(this.app, event);
-        break;
-      }
-      case "KeyH": {
-        fileExplorer.tree.onKeyArrowLeft(event);
-        break;
-      }
-      case "KeyL": {
-        fileExplorer.tree.onKeyArrowRight(event);
-        break;
-      }
-      case "KeyS": {
-        splitRight(this.app);
-        break;
-      }
-      case "KeyN": {
-        createNewItem(this.app, "file");
-        break;
-      }
-      case "KeyF": {
-        createNewItem(this.app, "folder");
-        break;
-      }
-      case "KeyC": {
-        cloneFile(this.app);
-        break;
-      }
-      default:
-    }
-  };
+	private handleKeyPress = async (event: KeyboardEvent): Promise<void> => {
+		// console.log(event.code)
+		if (event.shiftKey) {
+			switch (event.code) {
+				case "KeyZ": {
+					this.actions.collapseAllFolders();
+					break;
+				}
+				case "KeyN": {
+					this.actions.createNewItem("folder");
+					break;
+				}
+				default:
+			}
+		} else {
+			switch (event.code) {
+				case "ContextMenu":
+				case "Semicolon": {
+					event.preventDefault(); // NOTE: by default, it toggles the frame context menu.
+					this.actions.toggleContextMenu();
+					break;
+				}
+				case "KeyJ": {
+					this.actions.onKeyArrowDown(event);
+					break;
+				}
+				case "KeyK": {
+					this.actions.onKeyArrowUp(event);
+					break;
+				}
+				case "KeyH": {
+					const fileExplorer = this.app.workspace.getActiveViewOfType(View) as FileExplorer;
+					fileExplorer.tree.onKeyArrowLeft(event);
+					break;
+				}
+				case "KeyL": {
+					const fileExplorer = this.app.workspace.getActiveViewOfType(View) as FileExplorer;
+					fileExplorer.tree.onKeyArrowRight(event);
+					break;
+				}
+				case "KeyS": {
+					await this.actions.openInNewSplit("vertical");
+					break;
+				}
+				case "KeyI": {
+					await this.actions.openInNewSplit("horizontal");
+					break;
+				}
+				case "KeyN": {
+					this.actions.createNewItem("file");
+					break;
+				}
+				case "KeyC": {
+					await this.actions.cloneFile();
+					break;
+				}
+				default:
+			}
+		}
+	};
 }

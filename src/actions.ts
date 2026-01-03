@@ -1,90 +1,107 @@
-import { App, FileExplorer, TFolder, View } from "obsidian";
-import { de } from "./utils/utils";
-import { isFileItemFile } from "./utils/types";
+import { App, FileExplorer, SplitDirection, View } from "obsidian";
+import { removeExtensionFromPath } from "./utils/utils";
+import { isFileItem } from "./utils/types";
 
-export function collapseAllFolders(app: App) {
-  const fileExplorer = app.workspace.activeLeaf?.view as View;
+export class Actions {
+	constructor(private app: App) {}
 
-  fileExplorer.tree.isAllCollapsed = false;
-  fileExplorer.tree.setCollapseAll(true);
-}
+	private get fileExplorer(): FileExplorer {
+		return this.app.workspace.getActiveViewOfType(View) as FileExplorer;
+	}
 
-export function showContextMenu(app: App) {
-  const fileExplorer = app.workspace.activeLeaf?.view as View;
-  const focusedElement = fileExplorer.tree.focusedItem.el.querySelector(
-    ".nav-folder-title, .nav-file-title",
-  ) as HTMLElement;
-  const contextmenuEvent = new MouseEvent("contextmenu", {
-    bubbles: true,
-    cancelable: true,
-    view: window,
-    clientX: focusedElement.getBoundingClientRect().left,
-    clientY: focusedElement.getBoundingClientRect().top,
-  });
+	/**
+	 * NOTE: using extra selectors to avoid potential classname collisions.
+	 */
+	private get isContextMenuOpened(): boolean {
+		return document.querySelector(".menu > .menu-scroll") != null;
+	}
 
-  focusedElement.dispatchEvent(contextmenuEvent);
-}
+	public collapseAllFolders() {
+		this.fileExplorer.tree.isAllCollapsed = false;
+		this.fileExplorer.tree.setCollapseAll(true);
+	}
 
-export function onKeyArrowDown(app: App, event: KeyboardEvent) {
-  const fileExplorer = app.workspace.activeLeaf?.view as View;
-  const isContextMenuOpened = document.querySelector(".menu") != null;
+	public toggleContextMenu() {
+		if (this.isContextMenuOpened) {
+			const ev = new KeyboardEvent("keydown", {
+				key: "Escape",
+				bubbles: true,
+				cancelable: true,
+			});
+			document.dispatchEvent(ev);
+		} else {
+			const focusedElement = this.fileExplorer.tree.focusedItem.el.querySelector(
+				".nav-folder-title, .nav-file-title",
+			) as HTMLElement;
+			const contextmenuEvent = new MouseEvent("contextmenu", {
+				bubbles: true,
+				cancelable: true,
+				view: window,
+				clientX: focusedElement.getBoundingClientRect().left,
+				clientY: focusedElement.getBoundingClientRect().top,
+			});
 
-  if (isContextMenuOpened) {
-    const ev = new KeyboardEvent("keydown", {
-      key: "ArrowDown",
-      bubbles: true,
-      cancelable: true,
-    });
-    document.dispatchEvent(ev);
-  } else {
-    fileExplorer.tree.onKeyArrowDown(event);
-  }
-}
+			focusedElement.dispatchEvent(contextmenuEvent);
+		}
+	}
 
-export function onKeyArrowUp(app: App, event: KeyboardEvent) {
-  const fileExplorer = app.workspace.activeLeaf?.view as View;
-  const isContextMenuOpened = document.querySelector(".menu") != null;
+	public onKeyArrowDown(event: KeyboardEvent) {
+		if (this.isContextMenuOpened) {
+			const ev = new KeyboardEvent("keydown", {
+				key: "ArrowDown",
+				bubbles: true,
+				cancelable: true,
+			});
+			document.dispatchEvent(ev);
+		} else {
+			this.fileExplorer.tree.onKeyArrowDown(event);
+		}
+	}
 
-  if (isContextMenuOpened) {
-    const ev = new KeyboardEvent("keydown", {
-      key: "ArrowUp",
-      bubbles: true,
-      cancelable: true,
-    });
-    document.dispatchEvent(ev);
-  } else {
-    fileExplorer.tree.onKeyArrowUp(event);
-  }
-}
+	public onKeyArrowUp(event: KeyboardEvent) {
+		if (this.isContextMenuOpened) {
+			const ev = new KeyboardEvent("keydown", {
+				key: "ArrowUp",
+				bubbles: true,
+				cancelable: true,
+			});
+			document.dispatchEvent(ev);
+		} else {
+			this.fileExplorer.tree.onKeyArrowUp(event);
+		}
+	}
 
-export function splitRight(app: App) {
-  const fileExplorer = app.workspace.activeLeaf?.view as View;
-  const selectedFile = fileExplorer.tree.focusedItem.file;
+	public async openInNewSplit(direction: SplitDirection) {
+		const selectedItem = this.fileExplorer.tree.focusedItem.file;
 
-  if (selectedFile) {
-    const newLeaf = this.app.workspace.splitActiveLeaf();
-    newLeaf.openFile(selectedFile);
-  }
-}
+		if (selectedItem != null && isFileItem(selectedItem)) {
+			const newLeaf = this.app.workspace.getLeaf("split", direction);
+			await newLeaf.openFile(selectedItem);
+		}
+	}
 
-export function createNewItem(app: App, type: "file" | "folder") {
-  const fileExplorer = app.workspace.activeLeaf?.view as FileExplorer;
-  const selectedItem = fileExplorer.tree.focusedItem.file as any;
-  let folder: TFolder | null = selectedItem;
+	public createNewItem(itemType: "file" | "folder") {
+		const selectedItem = this.fileExplorer.tree.focusedItem.file;
 
-  if (isFileItemFile(selectedItem)) {
-    folder = selectedItem.parent;
-  }
+		if (selectedItem == null) {
+			return;
+		}
 
-  fileExplorer.createAbstractFile(type, folder, false);
-}
+		const folder = isFileItem(selectedItem) ? selectedItem.parent : selectedItem;
+		this.fileExplorer.createAbstractFile(itemType, folder, false);
+	}
 
-export async function cloneFile(app: App) {
-  const fileExplorer = app.workspace.activeLeaf?.view as FileExplorer;
-  const { file } = fileExplorer.tree.focusedItem;
+	public async cloneFile() {
+		const { file } = this.fileExplorer.tree.focusedItem;
 
-  if (file != null && isFileItemFile(file)) {
-    const destPath = this.app.vault.getAvailablePath(de(file.path), file.extension);
-    await app.vault.copy(file, destPath);
-  }
+		if (file == null || !isFileItem(file)) {
+			return;
+		}
+
+		const destPath = this.app.vault.getAvailablePath(
+			removeExtensionFromPath(file.path),
+			file.extension,
+		);
+		await this.app.vault.copy(file, destPath);
+	}
 }
