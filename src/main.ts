@@ -1,7 +1,8 @@
-import { SampleSettingTab } from "./settings/SampleSettingTab";
+import { SettingsTab } from "./settings/SettingsTab";
 import { App, FileExplorer, PluginManifest, View } from "obsidian";
 import { FileTreeNavSettings } from "./settings/FileTreeNavSettings";
-import { Actions } from "./actions";
+import { Actions } from "./Actions";
+import { mapCharacterToKeystroke } from "./utils/utils";
 
 export default class FileTreeNav extends FileTreeNavSettings {
 	private actions: Actions;
@@ -13,8 +14,7 @@ export default class FileTreeNav extends FileTreeNavSettings {
 
 	public async onload(): Promise<void> {
 		await this.loadSettings();
-
-		this.addSettingTab(new SampleSettingTab(this));
+		this.addSettingTab(new SettingsTab(this));
 		this.registerDomEvent(document, "keydown", this.handleKeyPressIfNeeded);
 	}
 
@@ -24,13 +24,17 @@ export default class FileTreeNav extends FileTreeNavSettings {
 	public onunload() {}
 
 	private handleKeyPressIfNeeded = async (event: KeyboardEvent): Promise<void> => {
-		if (this.shouldHandleKeyPress()) {
+		if (this.shouldHandleKeyPress(event)) {
 			event.stopImmediatePropagation();
 			this.handleKeyPress(event).catch(console.error); // TODO: should handle errors?
 		}
 	};
 
-	private shouldHandleKeyPress = (): boolean => {
+	/**
+	 * NOTE: the order of checks matters as we want to minimize the impact on performance,
+	 * so the most generic and performant checks should come first.
+	 */
+	private shouldHandleKeyPress = (event: KeyboardEvent): boolean => {
 		const isFileExplorerFocused =
 			this.app.workspace.getActiveViewOfType(View)?.getViewType() === "file-explorer";
 
@@ -49,11 +53,20 @@ export default class FileTreeNav extends FileTreeNavSettings {
 
 		const isSomePopupOpen = Boolean(document.querySelector(".modal"));
 
-		return !isSomePopupOpen;
+		if (isSomePopupOpen) {
+			return false;
+		}
+
+		const isKeyDisabledInSettings = this.settings.excludedKeys.split("").some((char) => {
+			const keystroke = mapCharacterToKeystroke(char);
+			return keystroke.code === event.code && keystroke.shiftKey === event.shiftKey;
+		});
+
+		return !isKeyDisabledInSettings;
 	};
 
 	private handleKeyPress = async (event: KeyboardEvent): Promise<void> => {
-		// console.log(event.code)
+		// console.log(event)
 		if (event.shiftKey) {
 			switch (event.code) {
 				case "KeyZ": {
@@ -68,7 +81,7 @@ export default class FileTreeNav extends FileTreeNavSettings {
 			}
 		} else {
 			switch (event.code) {
-				case "ContextMenu":
+				// case "ContextMenu": // TODO: not sure if needed
 				case "Semicolon": {
 					event.preventDefault(); // NOTE: by default, it toggles the frame context menu.
 					this.actions.toggleContextMenu();

@@ -30,9 +30,14 @@ export class Actions {
 			});
 			document.dispatchEvent(ev);
 		} else {
-			const focusedElement = this.fileExplorer.tree.focusedItem.el.querySelector(
+			const focusedElement = this.fileExplorer.tree.focusedItem?.el.querySelector(
 				".nav-folder-title, .nav-file-title",
-			) as HTMLElement;
+			);
+
+			if (focusedElement == null) {
+				return;
+			}
+
 			const contextmenuEvent = new MouseEvent("contextmenu", {
 				bubbles: true,
 				cancelable: true,
@@ -72,7 +77,7 @@ export class Actions {
 	}
 
 	public async openInNewSplit(direction: SplitDirection) {
-		const selectedItem = this.fileExplorer.tree.focusedItem.file;
+		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 
 		if (selectedItem != null && isFileItem(selectedItem)) {
 			const newLeaf = this.app.workspace.getLeaf("split", direction);
@@ -81,7 +86,7 @@ export class Actions {
 	}
 
 	public createNewItem(itemType: "file" | "folder") {
-		const selectedItem = this.fileExplorer.tree.focusedItem.file;
+		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 
 		if (selectedItem == null) {
 			return;
@@ -92,7 +97,7 @@ export class Actions {
 	}
 
 	public async cloneFile() {
-		const { file } = this.fileExplorer.tree.focusedItem;
+		const file = this.fileExplorer.tree.focusedItem?.file;
 
 		if (file == null || !isFileItem(file)) {
 			return;
