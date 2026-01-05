@@ -1,4 +1,4 @@
-import { TFile, TFolder, View } from "obsidian";
+import { SplitDirection, TFile, TFolder, View, WorkspaceLeaf } from "obsidian";
 
 /**
  * Undocumented typings for Obsidian.
@@ -6,6 +6,15 @@ import { TFile, TFolder, View } from "obsidian";
 declare module "obsidian" {
 	interface Vault {
 		getAvailablePath(path: string, extension: string): string;
+	}
+
+	interface Workspace {
+		splitLeaf(
+			recentLeaf: WorkspaceLeaf,
+			newLeaf: WorkspaceLeaf,
+			direction: SplitDirection,
+			n?: unknown,
+		): void;
 	}
 
 	interface FileExplorer extends View {

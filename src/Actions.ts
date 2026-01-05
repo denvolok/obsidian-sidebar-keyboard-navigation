@@ -1,4 +1,4 @@
-import { App, FileExplorer, SplitDirection, View } from "obsidian";
+import { App, FileExplorer, SplitDirection, View, WorkspaceLeaf } from "obsidian";
 import { removeExtensionFromPath } from "./utils/utils";
 import { isFileItem } from "./utils/types";
 
@@ -122,13 +122,25 @@ export class Actions {
 		}
 	}
 
-	public async openInNewSplit(direction: SplitDirection) {
+	public async openFileInNewSplit(data: { direction: SplitDirection; shouldFocus: boolean }) {
 		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 
-		if (selectedItem != null && isFileItem(selectedItem)) {
-			const newLeaf = this.app.workspace.getLeaf("split", direction);
-			await newLeaf.openFile(selectedItem);
+		if (selectedItem == null || !isFileItem(selectedItem)) {
+			return;
 		}
+
+		let newLeaf: WorkspaceLeaf;
+
+		if (data.shouldFocus) {
+			newLeaf = this.app.workspace.getLeaf("split", data.direction);
+		} else {
+			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
+			// @ts-ignore
+			newLeaf = new WorkspaceLeaf(this.app);
+			this.app.workspace.splitLeaf(recentLeaf, newLeaf, data.direction);
+		}
+
+		await newLeaf.openFile(selectedItem);
 	}
 
 	public createNewItem(itemType: "file" | "folder") {

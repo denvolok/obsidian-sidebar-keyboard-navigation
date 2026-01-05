@@ -87,6 +87,14 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					this.actions.deleteEntryAndFocusNext();
 					break;
 				}
+				case "KeyS": {
+					await this.actions.openFileInNewSplit({ direction: "vertical", shouldFocus: false });
+					break;
+				}
+				case "KeyI": {
+					await this.actions.openFileInNewSplit({ direction: "horizontal", shouldFocus: false });
+					break;
+				}
 				default:
 			}
 		} else {
@@ -116,11 +124,11 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					break;
 				}
 				case "KeyS": {
-					await this.actions.openInNewSplit("vertical");
+					await this.actions.openFileInNewSplit({ direction: "vertical", shouldFocus: true });
 					break;
 				}
 				case "KeyI": {
-					await this.actions.openInNewSplit("horizontal");
+					await this.actions.openFileInNewSplit({ direction: "horizontal", shouldFocus: true });
 					break;
 				}
 				case "KeyN": {
