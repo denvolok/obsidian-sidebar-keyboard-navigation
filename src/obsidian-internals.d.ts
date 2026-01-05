@@ -1,5 +1,8 @@
 import { TFile, TFolder, View } from "obsidian";
 
+/**
+ * Undocumented typings for Obsidian.
+ */
 declare module "obsidian" {
 	interface Vault {
 		getAvailablePath(path: string, extension: string): string;
@@ -11,6 +14,7 @@ declare module "obsidian" {
 				file: TFile | TFolder | null;
 				el: HTMLElement;
 				parent: {
+					parent: unknown;
 					vChildren: {
 						_children: { el: HTMLElement }[];
 					};

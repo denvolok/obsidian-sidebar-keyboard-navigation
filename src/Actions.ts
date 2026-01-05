@@ -76,6 +76,52 @@ export class Actions {
 		}
 	}
 
+	public deleteEntryAndFocusNext() {
+		const selectedElement = this.fileExplorer.tree.focusedItem;
+
+		if (selectedElement == null) {
+			// NOTE: never reproduced such case, but avoiding it since may cause unexpected destructive actions.
+			return;
+		}
+
+		const selectedItemIdx = selectedElement.parent.vChildren._children.findIndex(
+			(children) => children.el === selectedElement.el,
+		);
+		const isSelectedItemSingleChild = selectedElement.parent.vChildren._children.length === 1;
+		let nextItemToFocus;
+
+		if (isSelectedItemSingleChild) {
+			const isSelectedItemChildOfRootNode = selectedElement.parent.parent == null;
+			nextItemToFocus = isSelectedItemChildOfRootNode ? null : selectedElement.parent;
+		} else {
+			nextItemToFocus =
+				selectedElement.parent.vChildren._children[selectedItemIdx + 1] ??
+				selectedElement.parent.vChildren._children[selectedItemIdx - 1];
+		}
+
+		const ev = new KeyboardEvent("keydown", {
+			key: "Delete",
+			bubbles: true,
+			cancelable: true,
+		});
+		document.dispatchEvent(ev);
+
+		if (nextItemToFocus != null) {
+			// NOTE: trying to reduce flickering using setTimeout.
+			setTimeout(() => {
+				const isFileExplorerFocused =
+					this.app.workspace.getActiveViewOfType(View)?.getViewType() === "file-explorer";
+
+				// NOTE: in some cases, after deleting a note, the focus will switch to the main view, and we can't use `setFocusedItem` then.
+				if (!isFileExplorerFocused) {
+					return;
+				}
+
+				this.fileExplorer.tree.setFocusedItem(nextItemToFocus);
+			}, 70);
+		}
+	}
+
 	public async openInNewSplit(direction: SplitDirection) {
 		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 

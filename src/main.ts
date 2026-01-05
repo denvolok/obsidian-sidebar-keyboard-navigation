@@ -35,6 +35,12 @@ export default class FileTreeNav extends FileTreeNavSettings {
 	 * so the most generic and performant checks should come first.
 	 */
 	private shouldHandleKeyPress = (event: KeyboardEvent): boolean => {
+		const isUnsupportedKeyStroke = event.ctrlKey || event.altKey || event.metaKey;
+
+		if (isUnsupportedKeyStroke) {
+			return false;
+		}
+
 		const isFileExplorerFocused =
 			this.app.workspace.getActiveViewOfType(View)?.getViewType() === "file-explorer";
 
@@ -75,6 +81,10 @@ export default class FileTreeNav extends FileTreeNavSettings {
 				}
 				case "KeyN": {
 					this.actions.createNewItem("folder");
+					break;
+				}
+				case "KeyD": {
+					this.actions.deleteEntryAndFocusNext();
 					break;
 				}
 				default:
