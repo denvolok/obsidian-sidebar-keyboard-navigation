@@ -7,6 +7,10 @@ import { mapCharacterToKeystroke } from "./utils/utils";
 export default class FileTreeNav extends FileTreeNavSettings {
 	private actions: Actions;
 
+	private get fileExplorer(): FileExplorer {
+		return this.app.workspace.getActiveViewOfType(View) as FileExplorer;
+	}
+
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 		this.actions = new Actions(app);
@@ -80,7 +84,7 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					break;
 				}
 				case "KeyN": {
-					this.actions.createNewItem("folder");
+					this.actions.createNewEntry("folder");
 					break;
 				}
 				case "KeyD": {
@@ -88,11 +92,25 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					break;
 				}
 				case "KeyS": {
-					await this.actions.openFileInNewSplit({ direction: "vertical", shouldFocus: false });
+					await this.actions.openFocusedEntryInNewSplit({
+						direction: "vertical",
+						shouldFocus: false,
+					});
 					break;
 				}
 				case "KeyI": {
-					await this.actions.openFileInNewSplit({ direction: "horizontal", shouldFocus: false });
+					await this.actions.openFocusedEntryInNewSplit({
+						direction: "horizontal",
+						shouldFocus: false,
+					});
+					break;
+				}
+				case "KeyL": {
+					await this.actions.openFocusedEntryWithoutSwitch();
+					break;
+				}
+				case "KeyH": {
+					this.actions.focusParentOrCollapseRecursively();
 					break;
 				}
 				default:
@@ -114,29 +132,33 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					break;
 				}
 				case "KeyH": {
-					const fileExplorer = this.app.workspace.getActiveViewOfType(View) as FileExplorer;
-					fileExplorer.tree.onKeyArrowLeft(event);
+					this.fileExplorer.tree.onKeyArrowLeft(event);
 					break;
 				}
 				case "KeyL": {
-					const fileExplorer = this.app.workspace.getActiveViewOfType(View) as FileExplorer;
-					fileExplorer.tree.onKeyArrowRight(event);
+					this.fileExplorer.tree.onKeyArrowRight(event);
 					break;
 				}
 				case "KeyS": {
-					await this.actions.openFileInNewSplit({ direction: "vertical", shouldFocus: true });
+					await this.actions.openFocusedEntryInNewSplit({
+						direction: "vertical",
+						shouldFocus: true,
+					});
 					break;
 				}
 				case "KeyI": {
-					await this.actions.openFileInNewSplit({ direction: "horizontal", shouldFocus: true });
+					await this.actions.openFocusedEntryInNewSplit({
+						direction: "horizontal",
+						shouldFocus: true,
+					});
 					break;
 				}
 				case "KeyN": {
-					this.actions.createNewItem("file");
+					this.actions.createNewEntry("file");
 					break;
 				}
 				case "KeyC": {
-					await this.actions.cloneFile();
+					await this.actions.cloneEntry();
 					break;
 				}
 				default:

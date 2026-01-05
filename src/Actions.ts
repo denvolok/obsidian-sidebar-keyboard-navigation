@@ -1,6 +1,7 @@
 import { App, FileExplorer, SplitDirection, View, WorkspaceLeaf } from "obsidian";
 import { removeExtensionFromPath } from "./utils/utils";
 import { isFileItem } from "./utils/types";
+import { FileExplorerNode } from "./obsidian-internals";
 
 export class Actions {
 	constructor(private app: App) {}
@@ -16,12 +17,12 @@ export class Actions {
 		return document.querySelector(".menu > .menu-scroll") != null;
 	}
 
-	public collapseAllFolders() {
+	public collapseAllFolders(): void {
 		this.fileExplorer.tree.isAllCollapsed = false;
 		this.fileExplorer.tree.setCollapseAll(true);
 	}
 
-	public toggleContextMenu() {
+	public toggleContextMenu(): void {
 		if (this.isContextMenuOpened) {
 			const ev = new KeyboardEvent("keydown", {
 				key: "Escape",
@@ -50,7 +51,7 @@ export class Actions {
 		}
 	}
 
-	public onKeyArrowDown(event: KeyboardEvent) {
+	public onKeyArrowDown(event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
 			const ev = new KeyboardEvent("keydown", {
 				key: "ArrowDown",
@@ -63,7 +64,7 @@ export class Actions {
 		}
 	}
 
-	public onKeyArrowUp(event: KeyboardEvent) {
+	public onKeyArrowUp(event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
 			const ev = new KeyboardEvent("keydown", {
 				key: "ArrowUp",
@@ -76,7 +77,7 @@ export class Actions {
 		}
 	}
 
-	public deleteEntryAndFocusNext() {
+	public deleteEntryAndFocusNext(): void {
 		const selectedElement = this.fileExplorer.tree.focusedItem;
 
 		if (selectedElement == null) {
@@ -84,10 +85,10 @@ export class Actions {
 			return;
 		}
 
-		const selectedItemIdx = selectedElement.parent.vChildren._children.findIndex(
+		const selectedItemIdx = selectedElement.parent.vChildren.children.findIndex(
 			(children) => children.el === selectedElement.el,
 		);
-		const isSelectedItemSingleChild = selectedElement.parent.vChildren._children.length === 1;
+		const isSelectedItemSingleChild = selectedElement.parent.vChildren.children.length === 1;
 		let nextItemToFocus;
 
 		if (isSelectedItemSingleChild) {
@@ -95,8 +96,8 @@ export class Actions {
 			nextItemToFocus = isSelectedItemChildOfRootNode ? null : selectedElement.parent;
 		} else {
 			nextItemToFocus =
-				selectedElement.parent.vChildren._children[selectedItemIdx + 1] ??
-				selectedElement.parent.vChildren._children[selectedItemIdx - 1];
+				selectedElement.parent.vChildren.children[selectedItemIdx + 1] ??
+				selectedElement.parent.vChildren.children[selectedItemIdx - 1];
 		}
 
 		const ev = new KeyboardEvent("keydown", {
@@ -122,7 +123,21 @@ export class Actions {
 		}
 	}
 
-	public async openFileInNewSplit(data: { direction: SplitDirection; shouldFocus: boolean }) {
+	public async openFocusedEntryWithoutSwitch(): Promise<void> {
+		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
+
+		if (selectedItem == null || !isFileItem(selectedItem)) {
+			return;
+		}
+
+		const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
+		await recentLeaf.openFile(selectedItem);
+	}
+
+	public async openFocusedEntryInNewSplit(data: {
+		direction: SplitDirection;
+		shouldFocus: boolean;
+	}): Promise<void> {
 		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 
 		if (selectedItem == null || !isFileItem(selectedItem)) {
@@ -143,7 +158,7 @@ export class Actions {
 		await newLeaf.openFile(selectedItem);
 	}
 
-	public createNewItem(itemType: "file" | "folder") {
+	public createNewEntry(itemType: "file" | "folder"): void {
 		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
 
 		if (selectedItem == null) {
@@ -154,7 +169,7 @@ export class Actions {
 		this.fileExplorer.createAbstractFile(itemType, folder, false);
 	}
 
-	public async cloneFile() {
+	public async cloneEntry(): Promise<void> {
 		const file = this.fileExplorer.tree.focusedItem?.file;
 
 		if (file == null || !isFileItem(file)) {
@@ -166,5 +181,31 @@ export class Actions {
 			file.extension,
 		);
 		await this.app.vault.copy(file, destPath);
+	}
+
+	public focusParentOrCollapseRecursively(): void {
+		const selectedItem = this.fileExplorer.tree.focusedItem;
+
+		if (selectedItem?.parent == null) {
+			return;
+		}
+
+		if (selectedItem.collapsed === false) {
+			this.recursivelyCollapseNode(selectedItem);
+		} else {
+			this.fileExplorer.tree.setFocusedItem(selectedItem.parent);
+		}
+	}
+
+	private recursivelyCollapseNode(node: FileExplorerNode): void {
+		if (node.collapsed === false) {
+			node.setCollapsed(true);
+		}
+
+		if (node.vChildren != null) {
+			for (const c of node.vChildren.children) {
+				this.recursivelyCollapseNode(c);
+			}
+		}
 	}
 }

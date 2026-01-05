@@ -1,5 +1,26 @@
 import { SplitDirection, TFile, TFolder, View, WorkspaceLeaf } from "obsidian";
 
+export interface FileExplorerNodeBase {
+	coverEl: HTMLElement;
+	file: TFile | TFolder | null;
+	el: HTMLElement;
+	parent: FileExplorerFolderNode;
+}
+
+export type FileExplorerFileNode = FileExplorerFolderNode;
+
+export interface FileExplorerFolderNode extends FileExplorerNodeBase {
+	collapsed?: boolean;
+	vChildren: {
+		children: FileExplorerNode[];
+	};
+
+	setCollapsed(isCollapsed: boolean): unknown;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
+export type FileExplorerNode = FileExplorerFileNode | FileExplorerFolderNode;
+
 /**
  * Undocumented typings for Obsidian.
  */
@@ -19,16 +40,7 @@ declare module "obsidian" {
 
 	interface FileExplorer extends View {
 		tree: {
-			focusedItem?: {
-				file: TFile | TFolder | null;
-				el: HTMLElement;
-				parent: {
-					parent: unknown;
-					vChildren: {
-						_children: { el: HTMLElement }[];
-					};
-				};
-			};
+			focusedItem?: FileExplorerNode;
 			isAllCollapsed: boolean;
 			onKeyArrowDown(event: KeyboardEvent): unknown;
 			onKeyArrowUp(j: KeyboardEvent): void;
