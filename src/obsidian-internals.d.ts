@@ -7,7 +7,8 @@ export interface FileExplorerNodeBase {
 	parent: FileExplorerFolderNode;
 }
 
-export type FileExplorerFileNode = FileExplorerFolderNode;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface FileExplorerFileNode extends FileExplorerNodeBase {}
 
 export interface FileExplorerFolderNode extends FileExplorerNodeBase {
 	collapsed: boolean;
@@ -19,7 +20,6 @@ export interface FileExplorerFolderNode extends FileExplorerNodeBase {
 	setCollapsed(isCollapsed: boolean): unknown;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
 export type FileExplorerNode = FileExplorerFileNode | FileExplorerFolderNode;
 
 /**

@@ -198,11 +198,11 @@ export class Actions {
 	public focusParentOrCollapseRecursively(): void {
 		const { focusedItem } = this.fileExplorer.tree;
 
-		if (focusedItem?.parent == null) {
+		if (focusedItem == null) {
 			return;
 		}
 
-		if (!focusedItem.collapsed) {
+		if ("collapsed" in focusedItem && !focusedItem.collapsed) {
 			this.recursivelySetCollapsed({ node: focusedItem, isCollapsed: true });
 		} else {
 			this.fileExplorer.tree.setFocusedItem(focusedItem.parent);
@@ -212,11 +212,11 @@ export class Actions {
 	private recursivelySetCollapsed(data: { node: FileExplorerNode; isCollapsed: boolean }): void {
 		const { node, isCollapsed } = data;
 
-		if (node.collapsible && node.collapsed !== isCollapsed) {
+		if ("collapsed" in node && node.collapsed !== isCollapsed) {
 			node.setCollapsed(isCollapsed);
 		}
 
-		if (node.vChildren != null) {
+		if ("vChildren" in node) {
 			for (const child of node.vChildren.children) {
 				this.recursivelySetCollapsed({ node: child, isCollapsed });
 			}
