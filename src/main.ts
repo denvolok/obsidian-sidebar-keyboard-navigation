@@ -122,6 +122,18 @@ export default class FileTreeNav extends FileTreeNavData {
 					await this.actions.openFileInNewTabWithoutFocus();
 					break;
 				}
+				case "KeyJ": {
+					this.actions.moveFocusDown(event);
+					break;
+				}
+				case "KeyK": {
+					this.actions.moveFocusUp(event);
+					break;
+				}
+				case "KeyV": {
+					this.fileExplorer.tree.clearSelectedDoms();
+					break;
+				}
 				default:
 			}
 		} else {
@@ -131,11 +143,11 @@ export default class FileTreeNav extends FileTreeNavData {
 					break;
 				}
 				case "KeyJ": {
-					this.actions.onKeyArrowDown(event);
+					this.actions.moveFocusDown(event);
 					break;
 				}
 				case "KeyK": {
-					this.actions.onKeyArrowUp(event);
+					this.actions.moveFocusUp(event);
 					break;
 				}
 				case "KeyH": {
@@ -178,6 +190,10 @@ export default class FileTreeNav extends FileTreeNavData {
 				}
 				case "KeyT": {
 					await this.actions.openFileInNewTabAndFocus();
+					break;
+				}
+				case "KeyV": {
+					this.actions.toggleItemSelection();
 					break;
 				}
 				default:

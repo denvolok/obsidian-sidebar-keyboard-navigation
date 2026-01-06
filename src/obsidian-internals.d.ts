@@ -51,6 +51,7 @@ declare module "obsidian" {
 			};
 			focusedItem?: FileExplorerNode;
 			isAllCollapsed: boolean;
+			selectedDoms: Set<FileExplorerNode>;
 			onKeyArrowDown(event: KeyboardEvent): unknown;
 			onKeyArrowUp(j: KeyboardEvent): void;
 			onKeyArrowLeft(event: KeyboardEvent): void;
@@ -59,6 +60,9 @@ declare module "obsidian" {
 			handleDeleteSelectedItems(): unknown;
 			setFocusedItem(e: unknown, someParamRelatedToScrolling?: unknown): unknown;
 			changeFocusedItem(direction: "forwards" | "backwards"): void;
+			selectItem(item: FileExplorerNode): void;
+			deselectItem(item: FileExplorerNode): void;
+			clearSelectedDoms(): void;
 		};
 
 		createAbstractFile(itemType: string, folder: null | TFolder, b: boolean): unknown;

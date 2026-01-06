@@ -59,7 +59,7 @@ export class Actions {
 		}
 	}
 
-	public onKeyArrowDown(event: KeyboardEvent): void {
+	public moveFocusDown(event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
 			const ev = new KeyboardEvent("keydown", {
 				key: "ArrowDown",
@@ -72,7 +72,7 @@ export class Actions {
 		}
 	}
 
-	public onKeyArrowUp(event: KeyboardEvent): void {
+	public moveFocusUp(event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
 			const ev = new KeyboardEvent("keydown", {
 				key: "ArrowUp",
@@ -89,7 +89,6 @@ export class Actions {
 		const { focusedItem } = this.fileExplorer.tree;
 
 		if (focusedItem == null) {
-			// NOTE: never reproduced such case, but avoiding it since may cause unexpected destructive actions.
 			return;
 		}
 
@@ -100,6 +99,7 @@ export class Actions {
 		let nextItemToFocus;
 
 		if (isSelectedItemSingleChild) {
+			// TODO: should handle case when deleting multiple items. Currently no item focused.
 			const isSelectedItemChildOfRootNode = focusedItem.parent.parent == null;
 			nextItemToFocus = isSelectedItemChildOfRootNode ? null : focusedItem.parent;
 		} else {
@@ -265,5 +265,18 @@ export class Actions {
 		}
 
 		await targetLeaf.openFile(focusedItem.file);
+	}
+
+	public toggleItemSelection() {
+		const { focusedItem } = this.fileExplorer.tree;
+		if (focusedItem == null) {
+			return;
+		}
+
+		if (this.fileExplorer.tree.selectedDoms.has(focusedItem)) {
+			this.fileExplorer.tree.deselectItem(focusedItem);
+		} else {
+			this.fileExplorer.tree.selectItem(focusedItem);
+		}
 	}
 }
