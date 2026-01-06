@@ -1,4 +1,12 @@
-import { App, FileExplorer, SplitDirection, View, WorkspaceLeaf } from "obsidian";
+import {
+	App,
+	FileExplorer,
+	FileView,
+	SplitDirection,
+	View,
+	WorkspaceLeaf,
+	WorkspaceTabs,
+} from "obsidian";
 import { removeExtensionFromPath } from "./utils/utils";
 import { isFileItem } from "./utils/types";
 import { FileExplorerNode } from "./obsidian-internals";
@@ -78,26 +86,26 @@ export class Actions {
 	}
 
 	public deleteEntryAndFocusNext(): void {
-		const selectedElement = this.fileExplorer.tree.focusedItem;
+		const { focusedItem } = this.fileExplorer.tree;
 
-		if (selectedElement == null) {
+		if (focusedItem == null) {
 			// NOTE: never reproduced such case, but avoiding it since may cause unexpected destructive actions.
 			return;
 		}
 
-		const selectedItemIdx = selectedElement.parent.vChildren.children.findIndex(
-			(children) => children.el === selectedElement.el,
+		const focusedItemIdx = focusedItem.parent.vChildren.children.findIndex(
+			(children) => children.el === focusedItem.el,
 		);
-		const isSelectedItemSingleChild = selectedElement.parent.vChildren.children.length === 1;
+		const isSelectedItemSingleChild = focusedItem.parent.vChildren.children.length === 1;
 		let nextItemToFocus;
 
 		if (isSelectedItemSingleChild) {
-			const isSelectedItemChildOfRootNode = selectedElement.parent.parent == null;
-			nextItemToFocus = isSelectedItemChildOfRootNode ? null : selectedElement.parent;
+			const isSelectedItemChildOfRootNode = focusedItem.parent.parent == null;
+			nextItemToFocus = isSelectedItemChildOfRootNode ? null : focusedItem.parent;
 		} else {
 			nextItemToFocus =
-				selectedElement.parent.vChildren.children[selectedItemIdx + 1] ??
-				selectedElement.parent.vChildren.children[selectedItemIdx - 1];
+				focusedItem.parent.vChildren.children[focusedItemIdx + 1] ??
+				focusedItem.parent.vChildren.children[focusedItemIdx - 1];
 		}
 
 		const ev = new KeyboardEvent("keydown", {
@@ -123,24 +131,28 @@ export class Actions {
 		}
 	}
 
-	public async openFocusedEntryWithoutSwitch(): Promise<void> {
-		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
+	public async openFileWithoutFocusOrExpandFolder(): Promise<void> {
+		const { focusedItem } = this.fileExplorer.tree;
 
-		if (selectedItem == null || !isFileItem(selectedItem)) {
+		if (focusedItem?.file == null) {
 			return;
 		}
 
-		const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
-		await recentLeaf.openFile(selectedItem);
+		if (isFileItem(focusedItem.file)) {
+			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
+			await recentLeaf.openFile(focusedItem.file);
+		} else {
+			this.recursivelySetCollapsed({ node: focusedItem, isCollapsed: false });
+		}
 	}
 
 	public async openFocusedEntryInNewSplit(data: {
 		direction: SplitDirection;
 		shouldFocus: boolean;
 	}): Promise<void> {
-		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
+		const { focusedItem } = this.fileExplorer.tree;
 
-		if (selectedItem == null || !isFileItem(selectedItem)) {
+		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
 			return;
 		}
 
@@ -150,22 +162,22 @@ export class Actions {
 			newLeaf = this.app.workspace.getLeaf("split", data.direction);
 		} else {
 			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
-			// @ts-ignore
+			// @ts-ignore // "this.app" is not in typings
 			newLeaf = new WorkspaceLeaf(this.app);
 			this.app.workspace.splitLeaf(recentLeaf, newLeaf, data.direction);
 		}
 
-		await newLeaf.openFile(selectedItem);
+		await newLeaf.openFile(focusedItem.file);
 	}
 
 	public createNewEntry(itemType: "file" | "folder"): void {
-		const selectedItem = this.fileExplorer.tree.focusedItem?.file;
+		const focusedItem = this.fileExplorer.tree.focusedItem;
 
-		if (selectedItem == null) {
+		if (focusedItem?.file == null) {
 			return;
 		}
 
-		const folder = isFileItem(selectedItem) ? selectedItem.parent : selectedItem;
+		const folder = isFileItem(focusedItem.file) ? focusedItem.file.parent : focusedItem.file;
 		this.fileExplorer.createAbstractFile(itemType, folder, false);
 	}
 
@@ -184,28 +196,74 @@ export class Actions {
 	}
 
 	public focusParentOrCollapseRecursively(): void {
-		const selectedItem = this.fileExplorer.tree.focusedItem;
+		const { focusedItem } = this.fileExplorer.tree;
 
-		if (selectedItem?.parent == null) {
+		if (focusedItem?.parent == null) {
 			return;
 		}
 
-		if (selectedItem.collapsed === false) {
-			this.recursivelyCollapseNode(selectedItem);
+		if (!focusedItem.collapsed) {
+			this.recursivelySetCollapsed({ node: focusedItem, isCollapsed: true });
 		} else {
-			this.fileExplorer.tree.setFocusedItem(selectedItem.parent);
+			this.fileExplorer.tree.setFocusedItem(focusedItem.parent);
 		}
 	}
 
-	private recursivelyCollapseNode(node: FileExplorerNode): void {
-		if (node.collapsed === false) {
-			node.setCollapsed(true);
+	private recursivelySetCollapsed(data: { node: FileExplorerNode; isCollapsed: boolean }): void {
+		const { node, isCollapsed } = data;
+
+		if (node.collapsible && node.collapsed !== isCollapsed) {
+			node.setCollapsed(isCollapsed);
 		}
 
 		if (node.vChildren != null) {
-			for (const c of node.vChildren.children) {
-				this.recursivelyCollapseNode(c);
+			for (const child of node.vChildren.children) {
+				this.recursivelySetCollapsed({ node: child, isCollapsed });
 			}
 		}
+	}
+
+	public async openFileInNewTabAndFocus() {
+		const { focusedItem } = this.fileExplorer.tree;
+
+		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
+			return;
+		}
+
+		const newLeaf = this.app.workspace.getLeaf("tab");
+		await newLeaf.openFile(focusedItem.file);
+		this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+	}
+
+	/**
+	 * NOTE: this action uses a modified version of the `createLeafInTabGroup` function,
+	 * so it more likely to introduce bugs after Obsidian updates related logic.
+	 */
+	public async openFileInNewTabWithoutFocus() {
+		const { focusedItem } = this.fileExplorer.tree;
+		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
+			return;
+		}
+
+		const recentLeaf = this.app.workspace.getMostRecentLeaf();
+		if (recentLeaf == null) {
+			throw new Error("No tab group found");
+		}
+
+		const tabs = recentLeaf.parent as WorkspaceTabs;
+		const rightmostTabInRecentLeaf = tabs.children.slice(-1)[0]!;
+		const isEmptyTab = rightmostTabInRecentLeaf.view instanceof FileView === false;
+
+		let targetLeaf: WorkspaceLeaf;
+
+		if (isEmptyTab) {
+			targetLeaf = recentLeaf;
+		} else {
+			// @ts-ignore // "this.app" is not in typings
+			targetLeaf = new WorkspaceLeaf(this.app);
+			tabs.insertChild(tabs.children.length, targetLeaf);
+		}
+
+		await targetLeaf.openFile(focusedItem.file);
 	}
 }

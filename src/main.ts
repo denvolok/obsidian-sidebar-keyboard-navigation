@@ -1,10 +1,10 @@
-import { SettingsTab } from "./settings/SettingsTab";
+import { SettingsTab } from "./plugin-data/SettingsTab";
 import { App, FileExplorer, PluginManifest, View } from "obsidian";
-import { FileTreeNavSettings } from "./settings/FileTreeNavSettings";
+import { FileTreeNavData } from "./plugin-data/FileTreeNavData";
 import { Actions } from "./Actions";
 import { mapCharacterToKeystroke } from "./utils/utils";
 
-export default class FileTreeNav extends FileTreeNavSettings {
+export default class FileTreeNav extends FileTreeNavData {
 	private actions: Actions;
 
 	private get fileExplorer(): FileExplorer {
@@ -67,7 +67,7 @@ export default class FileTreeNav extends FileTreeNavSettings {
 			return false;
 		}
 
-		const isKeyDisabledInSettings = this.settings.excludedKeys.split("").some((char) => {
+		const isKeyDisabledInSettings = this.data.settings.excludedKeys.split("").some((char) => {
 			const keystroke = mapCharacterToKeystroke(char);
 			return keystroke.code === event.code && keystroke.shiftKey === event.shiftKey;
 		});
@@ -76,7 +76,6 @@ export default class FileTreeNav extends FileTreeNavSettings {
 	};
 
 	private handleKeyPress = async (event: KeyboardEvent): Promise<void> => {
-		// console.log(event)
 		if (event.shiftKey) {
 			switch (event.code) {
 				case "KeyZ": {
@@ -106,20 +105,28 @@ export default class FileTreeNav extends FileTreeNavSettings {
 					break;
 				}
 				case "KeyL": {
-					await this.actions.openFocusedEntryWithoutSwitch();
+					await this.actions.openFileWithoutFocusOrExpandFolder();
 					break;
 				}
 				case "KeyH": {
 					this.actions.focusParentOrCollapseRecursively();
 					break;
 				}
+				case "KeyG": {
+					this.fileExplorer.tree.setFocusedItem(
+						this.fileExplorer.tree.root.vChildren.children.slice(-1)[0],
+					);
+					break;
+				}
+				case "KeyT": {
+					await this.actions.openFileInNewTabWithoutFocus();
+					break;
+				}
 				default:
 			}
 		} else {
 			switch (event.code) {
-				// case "ContextMenu": // TODO: not sure if needed
 				case "Semicolon": {
-					event.preventDefault(); // NOTE: by default, it toggles the frame context menu.
 					this.actions.toggleContextMenu();
 					break;
 				}
@@ -159,6 +166,18 @@ export default class FileTreeNav extends FileTreeNavSettings {
 				}
 				case "KeyC": {
 					await this.actions.cloneEntry();
+					break;
+				}
+				case "KeyR": {
+					this.fileExplorer.onKeyRename(event);
+					break;
+				}
+				case "KeyG": {
+					this.fileExplorer.tree.setFocusedItem(this.fileExplorer.tree.root.vChildren.children[0]);
+					break;
+				}
+				case "KeyT": {
+					await this.actions.openFileInNewTabAndFocus();
 					break;
 				}
 				default:

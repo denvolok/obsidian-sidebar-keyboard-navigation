@@ -10,7 +10,8 @@ export interface FileExplorerNodeBase {
 export type FileExplorerFileNode = FileExplorerFolderNode;
 
 export interface FileExplorerFolderNode extends FileExplorerNodeBase {
-	collapsed?: boolean;
+	collapsed: boolean;
+	collapsible: boolean;
 	vChildren: {
 		children: FileExplorerNode[];
 	};
@@ -38,8 +39,16 @@ declare module "obsidian" {
 		): void;
 	}
 
+	interface WorkspaceTabs {
+		children: WorkspaceLeaf[];
+		insertChild: (idx: number, leaf: WorkspaceLeaf) => unknown;
+	}
+
 	interface FileExplorer extends View {
 		tree: {
+			root: {
+				vChildren: { children: FileExplorerNode[] };
+			};
 			focusedItem?: FileExplorerNode;
 			isAllCollapsed: boolean;
 			onKeyArrowDown(event: KeyboardEvent): unknown;
@@ -53,5 +62,9 @@ declare module "obsidian" {
 		};
 
 		createAbstractFile(itemType: string, folder: null | TFolder, b: boolean): unknown;
+
+		onKeyRename(event: KeyboardEvent): void;
+
+		onKeyOpen(event: KeyboardEvent): void;
 	}
 }

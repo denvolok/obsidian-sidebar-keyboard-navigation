@@ -12,6 +12,7 @@ export class SettingsTab extends PluginSettingTab {
 
 	public display(): void {
 		const { containerEl } = this;
+		const { settings } = this.plugin.data;
 
 		containerEl.empty();
 
@@ -22,7 +23,7 @@ export class SettingsTab extends PluginSettingTab {
 				text
 					// eslint-disable-next-line obsidianmd/ui/sentence-case
 					.setPlaceholder("Example: Zl;")
-					.setValue(this.plugin.settings.excludedKeys)
+					.setValue(settings.excludedKeys)
 					.onChange(async (value) => {
 						const isInvalidValue = value.match(validCharsRegex) == null;
 						const isDuplicateEntries = value
@@ -30,11 +31,11 @@ export class SettingsTab extends PluginSettingTab {
 							.some((char, i, arr) => arr.indexOf(char) !== i);
 
 						if (isInvalidValue || isDuplicateEntries) {
-							text.setValue(this.plugin.settings.excludedKeys);
+							text.setValue(settings.excludedKeys);
 							return;
 						}
 
-						this.plugin.settings.excludedKeys = value;
+						settings.excludedKeys = value;
 						await this.plugin.saveSettings();
 					}),
 			);
