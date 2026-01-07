@@ -3,6 +3,7 @@ import {
 	FileExplorer,
 	FileView,
 	SplitDirection,
+	TFolder,
 	View,
 	WorkspaceLeaf,
 	WorkspaceTabs,
@@ -95,10 +96,10 @@ export class Actions {
 		const focusedItemIdx = focusedItem.parent.vChildren.children.findIndex(
 			(children) => children.el === focusedItem.el,
 		);
-		const isSelectedItemSingleChild = focusedItem.parent.vChildren.children.length === 1;
+		const isFocusedItemSingleChild = focusedItem.parent.vChildren.children.length === 1;
 		let nextItemToFocus;
 
-		if (isSelectedItemSingleChild) {
+		if (isFocusedItemSingleChild) {
 			// TODO: should handle case when deleting multiple items. Currently no item focused.
 			const isSelectedItemChildOfRootNode = focusedItem.parent.parent == null;
 			nextItemToFocus = isSelectedItemChildOfRootNode ? null : focusedItem.parent;
@@ -170,15 +171,28 @@ export class Actions {
 		await newLeaf.openFile(focusedItem.file);
 	}
 
-	public createNewEntry(itemType: "file" | "folder"): void {
+	public createNewEntry(data: {
+		itemType: "file" | "folder";
+		context: "current" | "parent";
+	}): void {
+		const { itemType, context } = data;
 		const focusedItem = this.fileExplorer.tree.focusedItem;
 
 		if (focusedItem == null) {
 			return;
 		}
 
-		const folder = isFileNode(focusedItem) ? focusedItem.file.parent : focusedItem.file;
-		this.fileExplorer.createAbstractFile(itemType, folder, false);
+		let folder: TFolder | null;
+
+		if (context === "current") {
+			folder = isFileNode(focusedItem) ? focusedItem.file.parent : focusedItem.file;
+		} else {
+			folder = focusedItem.file.parent;
+		}
+
+		if (folder != null) {
+			this.fileExplorer.createAbstractFile(itemType, folder, false);
+		}
 	}
 
 	public async cloneEntry(): Promise<void> {

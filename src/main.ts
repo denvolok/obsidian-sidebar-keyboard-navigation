@@ -83,7 +83,11 @@ export default class FileTreeNav extends PluginData {
 					break;
 				}
 				case "KeyN": {
-					this.actions.createNewEntry("folder");
+					this.actions.createNewEntry({ itemType: "file", context: "parent" });
+					break;
+				}
+				case "KeyF": {
+					this.actions.createNewEntry({ itemType: "folder", context: "parent" });
 					break;
 				}
 				case "KeyD": {
@@ -173,7 +177,11 @@ export default class FileTreeNav extends PluginData {
 					break;
 				}
 				case "KeyN": {
-					this.actions.createNewEntry("file");
+					this.actions.createNewEntry({ itemType: "file", context: "current" });
+					break;
+				}
+				case "KeyF": {
+					this.actions.createNewEntry({ itemType: "folder", context: "current" });
 					break;
 				}
 				case "KeyC": {

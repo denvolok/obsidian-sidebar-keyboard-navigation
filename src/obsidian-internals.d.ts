@@ -66,7 +66,7 @@ declare module "obsidian" {
 			clearSelectedDoms(): void;
 		};
 
-		createAbstractFile(itemType: string, folder: null | TFolder, b: boolean): unknown;
+		createAbstractFile(itemType: string, folder: TFolder, b: boolean): unknown;
 
 		onKeyRename(event: KeyboardEvent): void;
 
