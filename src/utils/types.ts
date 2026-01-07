@@ -1,5 +1,5 @@
-import { TFile, TFolder } from "obsidian";
+import { FileExplorerFileNode, FileExplorerNode } from "../obsidian-internals";
 
-export function isFileItem(item: TFile | TFolder): item is TFile {
-	return item instanceof TFile;
+export function isFileNode(node: FileExplorerNode): node is FileExplorerFileNode {
+	return "extension" in node.file;
 }

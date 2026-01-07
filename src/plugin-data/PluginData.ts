@@ -8,15 +8,15 @@ const DEFAULT_SETTINGS: PluginSettings = {
 	excludedKeys: "Dr", // TODO: this syntax might not work if needed "space" and prob some other stuff
 };
 
-interface PluginData {
+interface PluginStoredData {
 	settings: PluginSettings;
 }
 
-export class FileTreeNavData extends Plugin {
-	public data: PluginData;
+export class PluginData extends Plugin {
+	public data: PluginStoredData;
 
 	public async loadSettings(): Promise<void> {
-		const storedData = (await this.loadData()) as PluginData;
+		const storedData = (await this.loadData()) as PluginStoredData;
 		this.data = {
 			...storedData,
 			settings: {

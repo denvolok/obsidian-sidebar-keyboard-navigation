@@ -2,15 +2,16 @@ import { SplitDirection, TFile, TFolder, View, WorkspaceLeaf } from "obsidian";
 
 export interface FileExplorerNodeBase {
 	coverEl: HTMLElement;
-	file: TFile | TFolder | null;
 	el: HTMLElement;
 	parent: FileExplorerFolderNode;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface FileExplorerFileNode extends FileExplorerNodeBase {}
+export interface FileExplorerFileNode extends FileExplorerNodeBase {
+	file: TFile;
+}
 
 export interface FileExplorerFolderNode extends FileExplorerNodeBase {
+	file: TFolder;
 	collapsed: boolean;
 	collapsible: boolean;
 	vChildren: {

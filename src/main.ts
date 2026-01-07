@@ -1,10 +1,10 @@
 import { SettingsTab } from "./plugin-data/SettingsTab";
 import { App, FileExplorer, PluginManifest, View } from "obsidian";
-import { FileTreeNavData } from "./plugin-data/FileTreeNavData";
+import { PluginData } from "./plugin-data/PluginData";
 import { Actions } from "./Actions";
 import { mapCharacterToKeystroke } from "./utils/utils";
 
-export default class FileTreeNav extends FileTreeNavData {
+export default class FileTreeNav extends PluginData {
 	private actions: Actions;
 
 	private get fileExplorer(): FileExplorer {
@@ -194,6 +194,10 @@ export default class FileTreeNav extends FileTreeNavData {
 				}
 				case "KeyV": {
 					this.actions.toggleItemSelection();
+					break;
+				}
+				case "KeyW": {
+					await this.actions.openFileInNewWindow();
 					break;
 				}
 				default:

@@ -8,7 +8,7 @@ import {
 	WorkspaceTabs,
 } from "obsidian";
 import { removeExtensionFromPath } from "./utils/utils";
-import { isFileItem } from "./utils/types";
+import { isFileNode } from "./utils/types";
 import { FileExplorerNode } from "./obsidian-internals";
 
 export class Actions {
@@ -134,11 +134,11 @@ export class Actions {
 	public async openFileWithoutFocusOrExpandFolder(): Promise<void> {
 		const { focusedItem } = this.fileExplorer.tree;
 
-		if (focusedItem?.file == null) {
+		if (focusedItem == null) {
 			return;
 		}
 
-		if (isFileItem(focusedItem.file)) {
+		if (isFileNode(focusedItem)) {
 			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
 			await recentLeaf.openFile(focusedItem.file);
 		} else {
@@ -152,7 +152,7 @@ export class Actions {
 	}): Promise<void> {
 		const { focusedItem } = this.fileExplorer.tree;
 
-		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
+		if (focusedItem == null || !isFileNode(focusedItem)) {
 			return;
 		}
 
@@ -162,7 +162,7 @@ export class Actions {
 			newLeaf = this.app.workspace.getLeaf("split", data.direction);
 		} else {
 			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
-			// @ts-ignore // "this.app" is not in typings
+			// @ts-ignore // "this.app" is missing in typings
 			newLeaf = new WorkspaceLeaf(this.app);
 			this.app.workspace.splitLeaf(recentLeaf, newLeaf, data.direction);
 		}
@@ -173,26 +173,26 @@ export class Actions {
 	public createNewEntry(itemType: "file" | "folder"): void {
 		const focusedItem = this.fileExplorer.tree.focusedItem;
 
-		if (focusedItem?.file == null) {
+		if (focusedItem == null) {
 			return;
 		}
 
-		const folder = isFileItem(focusedItem.file) ? focusedItem.file.parent : focusedItem.file;
+		const folder = isFileNode(focusedItem) ? focusedItem.file.parent : focusedItem.file;
 		this.fileExplorer.createAbstractFile(itemType, folder, false);
 	}
 
 	public async cloneEntry(): Promise<void> {
-		const file = this.fileExplorer.tree.focusedItem?.file;
+		const focusedItem = this.fileExplorer.tree.focusedItem;
 
-		if (file == null || !isFileItem(file)) {
+		if (focusedItem == null || !isFileNode(focusedItem)) {
 			return;
 		}
 
 		const destPath = this.app.vault.getAvailablePath(
-			removeExtensionFromPath(file.path),
-			file.extension,
+			removeExtensionFromPath(focusedItem.file.path),
+			focusedItem.file.extension,
 		);
-		await this.app.vault.copy(file, destPath);
+		await this.app.vault.copy(focusedItem.file, destPath);
 	}
 
 	public focusParentOrCollapseRecursively(): void {
@@ -226,13 +226,13 @@ export class Actions {
 	public async openFileInNewTabAndFocus() {
 		const { focusedItem } = this.fileExplorer.tree;
 
-		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
+		if (focusedItem == null || !isFileNode(focusedItem)) {
 			return;
 		}
 
 		const newLeaf = this.app.workspace.getLeaf("tab");
 		await newLeaf.openFile(focusedItem.file);
-		this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+		this.app.workspace.setActiveLeaf(newLeaf, { focus: true }); // NOTE: this call is needed only for the case when the current editor tab is empty, for other cases `getLeaf` will focus new leaf.
 	}
 
 	/**
@@ -241,7 +241,7 @@ export class Actions {
 	 */
 	public async openFileInNewTabWithoutFocus() {
 		const { focusedItem } = this.fileExplorer.tree;
-		if (focusedItem?.file == null || !isFileItem(focusedItem.file)) {
+		if (focusedItem == null || !isFileNode(focusedItem)) {
 			return;
 		}
 
@@ -259,7 +259,7 @@ export class Actions {
 		if (isEmptyTab) {
 			targetLeaf = recentLeaf;
 		} else {
-			// @ts-ignore // "this.app" is not in typings
+			// @ts-ignore // "this.app" is missing in typings
 			targetLeaf = new WorkspaceLeaf(this.app);
 			tabs.insertChild(tabs.children.length, targetLeaf);
 		}
@@ -277,6 +277,38 @@ export class Actions {
 			this.fileExplorer.tree.deselectItem(focusedItem);
 		} else {
 			this.fileExplorer.tree.selectItem(focusedItem);
+		}
+	}
+
+	public async openFileInNewWindow() {
+		const { focusedItem } = this.fileExplorer.tree;
+
+		const selectedFiles = Array.from(this.fileExplorer.tree.selectedDoms).filter((node) =>
+			isFileNode(node),
+		);
+		const newLeaf = this.app.workspace.getLeaf("window");
+
+		if (selectedFiles.length === 0) {
+			if (focusedItem == null || !isFileNode(focusedItem)) {
+				return;
+			}
+
+			await newLeaf.openFile(focusedItem.file);
+		} else {
+			const tabs = newLeaf.parent as WorkspaceTabs;
+
+			for (let i = 0; i < selectedFiles.length; i++) {
+				const selectedNode = selectedFiles[i]!;
+
+				if (i === 0) {
+					await newLeaf.openFile(selectedNode.file); // NOTE: the first tab already created by `getLeaf`.
+				} else {
+					// @ts-ignore // "this.app" is missing in typings
+					const newTab = new WorkspaceLeaf(this.app);
+					tabs.insertChild(tabs.children.length, newTab);
+					await newTab.openFile(selectedNode.file);
+				}
+			}
 		}
 	}
 }
