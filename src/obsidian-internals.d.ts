@@ -31,6 +31,24 @@ declare module "obsidian" {
 		getAvailablePath(path: string, extension: string): string;
 	}
 
+	interface App {
+		internalPlugins: {
+			plugins: {
+				"page-preview": {
+					instance: {
+						onLinkHover: (
+							e: View,
+							hoveredElement: Element,
+							hoveredElementPath: string,
+							i: string,
+							r?: unknown,
+						) => Promise<void>;
+					};
+				};
+			};
+		};
+	}
+
 	interface Workspace {
 		splitLeaf(
 			recentLeaf: WorkspaceLeaf,
@@ -71,5 +89,7 @@ declare module "obsidian" {
 		onKeyRename(event: KeyboardEvent): void;
 
 		onKeyOpen(event: KeyboardEvent): void;
+
+		onFileMouseover(event: MouseEvent, element: Element): void;
 	}
 }

@@ -1,6 +1,6 @@
 import { PluginSettingTab, Setting } from "obsidian";
-import FileTreeNav from "../main";
-import { validCharsRegex } from "../utils/utils";
+import FileTreeNav from "./main";
+import { validCharsRegex } from "./utils/utils";
 
 export class SettingsTab extends PluginSettingTab {
 	private plugin: FileTreeNav;

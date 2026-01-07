@@ -26,6 +26,10 @@ export class Actions {
 		return document.querySelector(".menu > .menu-scroll") != null;
 	}
 
+	private get isPreviewPopupOpened(): boolean {
+		return document.querySelector(".popover.hover-popover") != null;
+	}
+
 	public collapseAllFolders(): void {
 		this.fileExplorer.tree.isAllCollapsed = false;
 		this.fileExplorer.tree.setCollapseAll(true);
@@ -33,12 +37,12 @@ export class Actions {
 
 	public toggleContextMenu(): void {
 		if (this.isContextMenuOpened) {
-			const ev = new KeyboardEvent("keydown", {
+			const event = new KeyboardEvent("keydown", {
 				key: "Escape",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(ev);
+			document.dispatchEvent(event);
 		} else {
 			const focusedElement = this.fileExplorer.tree.focusedItem?.el.querySelector(
 				".nav-folder-title, .nav-file-title",
@@ -60,28 +64,56 @@ export class Actions {
 		}
 	}
 
-	public moveFocusDown(event: KeyboardEvent): void {
+	public moveFocusDown(_event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
-			const ev = new KeyboardEvent("keydown", {
+			const event = new KeyboardEvent("keydown", {
 				key: "ArrowDown",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(ev);
+			document.dispatchEvent(event);
 		} else {
+			let event: KeyboardEvent;
+
+			if (_event.shiftKey) {
+				// NOTE: removing `shiftKey` from the genuine event to avoid the native behavior to select focused item.
+				event = new KeyboardEvent("keydown", {
+					key: "ArrowDown",
+					bubbles: true,
+					cancelable: true,
+				});
+			} else {
+				// NOTE: and avoid modifying the genuine event just in case we occasionally will overwrite something.
+				event = _event;
+			}
+
 			this.fileExplorer.tree.onKeyArrowDown(event);
 		}
 	}
 
-	public moveFocusUp(event: KeyboardEvent): void {
+	public moveFocusUp(_event: KeyboardEvent): void {
 		if (this.isContextMenuOpened) {
-			const ev = new KeyboardEvent("keydown", {
+			const event = new KeyboardEvent("keydown", {
 				key: "ArrowUp",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(ev);
+			document.dispatchEvent(event);
 		} else {
+			let event: KeyboardEvent;
+
+			if (_event.shiftKey) {
+				// NOTE: removing `shiftKey` from the genuine event to avoid the native behavior to select focused item.
+				event = new KeyboardEvent("keydown", {
+					key: "ArrowUp",
+					bubbles: true,
+					cancelable: true,
+				});
+			} else {
+				// NOTE: and avoid modifying the genuine event just in case we occasionally will overwrite something.
+				event = _event;
+			}
+
 			this.fileExplorer.tree.onKeyArrowUp(event);
 		}
 	}
@@ -109,12 +141,12 @@ export class Actions {
 				focusedItem.parent.vChildren.children[focusedItemIdx - 1];
 		}
 
-		const ev = new KeyboardEvent("keydown", {
+		const event = new KeyboardEvent("keydown", {
 			key: "Delete",
 			bubbles: true,
 			cancelable: true,
 		});
-		document.dispatchEvent(ev);
+		document.dispatchEvent(event);
 
 		if (nextItemToFocus != null) {
 			// NOTE: trying to reduce flickering using setTimeout.
@@ -132,19 +164,26 @@ export class Actions {
 		}
 	}
 
-	public async openFileWithoutFocusOrExpandFolder(): Promise<void> {
+	public async openFileWithoutFocusSwitchOrExpandFolder(): Promise<void> {
 		const { focusedItem } = this.fileExplorer.tree;
-
 		if (focusedItem == null) {
 			return;
 		}
 
 		if (isFileNode(focusedItem)) {
-			const recentLeaf = this.app.workspace.getMostRecentLeaf()!;
-			await recentLeaf.openFile(focusedItem.file);
+			await this.openFileWithoutFocusSwitch();
 		} else {
 			this.recursivelySetCollapsed({ node: focusedItem, isCollapsed: false });
 		}
+	}
+
+	public async openFileWithoutFocusSwitch(): Promise<void> {
+		const { focusedItem } = this.fileExplorer.tree;
+		if (focusedItem == null || !isFileNode(focusedItem)) {
+			return;
+		}
+
+		await this.app.workspace.getMostRecentLeaf()!.openFile(focusedItem.file);
 	}
 
 	public async openFocusedEntryInNewSplit(data: {
@@ -324,5 +363,42 @@ export class Actions {
 				}
 			}
 		}
+	}
+
+	public async togglePreviewOnFocusedItem() {
+		const { focusedItem } = this.fileExplorer.tree;
+		if (focusedItem == null || !isFileNode(focusedItem)) {
+			return;
+		}
+
+		if (this.isPreviewPopupOpened) {
+			this.hidePreviewPopup();
+		} else {
+			await this.app.internalPlugins.plugins["page-preview"].instance.onLinkHover(
+				this.fileExplorer,
+				focusedItem.el.children[0]!,
+				focusedItem.file.path,
+				"",
+			);
+		}
+	}
+
+	public hidePreviewPopupIfActive() {
+		if (this.isPreviewPopupOpened) {
+			this.hidePreviewPopup();
+		}
+	}
+
+	private hidePreviewPopup() {
+		const { focusedItem } = this.fileExplorer.tree;
+		if (focusedItem == null || !isFileNode(focusedItem)) {
+			return;
+		}
+
+		const event = new MouseEvent("mouseout", {
+			bubbles: true,
+			cancelable: true,
+		});
+		focusedItem.el.children[0]!.dispatchEvent(event);
 	}
 }

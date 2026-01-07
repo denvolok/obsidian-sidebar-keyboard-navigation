@@ -1,6 +1,6 @@
-import { SettingsTab } from "./plugin-data/SettingsTab";
+import { SettingsTab } from "./SettingsTab";
 import { App, FileExplorer, PluginManifest, View } from "obsidian";
-import { PluginData } from "./plugin-data/PluginData";
+import { PluginData } from "./PluginData";
 import { Actions } from "./Actions";
 import { mapCharacterToKeystroke } from "./utils/utils";
 
@@ -30,7 +30,7 @@ export default class FileTreeNav extends PluginData {
 	private handleKeyPressIfNeeded = async (event: KeyboardEvent): Promise<void> => {
 		if (this.shouldHandleKeyPress(event)) {
 			event.stopImmediatePropagation();
-			this.handleKeyPress(event).catch(console.error); // TODO: should handle errors?
+			this.handleKeyPress(event).catch(console.error);
 		}
 	};
 
@@ -76,6 +76,8 @@ export default class FileTreeNav extends PluginData {
 	};
 
 	private handleKeyPress = async (event: KeyboardEvent): Promise<void> => {
+		// this.actions.hidePreviewPopupIfActive(); // TODO: consider the scope of actions to auto-hide preview popups.
+
 		if (event.shiftKey) {
 			switch (event.code) {
 				case "KeyZ": {
@@ -109,7 +111,7 @@ export default class FileTreeNav extends PluginData {
 					break;
 				}
 				case "KeyL": {
-					await this.actions.openFileWithoutFocusOrExpandFolder();
+					await this.actions.openFileWithoutFocusSwitchOrExpandFolder();
 					break;
 				}
 				case "KeyH": {
@@ -128,10 +130,12 @@ export default class FileTreeNav extends PluginData {
 				}
 				case "KeyJ": {
 					this.actions.moveFocusDown(event);
+					await this.actions.openFileWithoutFocusSwitch();
 					break;
 				}
 				case "KeyK": {
 					this.actions.moveFocusUp(event);
+					await this.actions.openFileWithoutFocusSwitch();
 					break;
 				}
 				case "KeyV": {
@@ -206,6 +210,10 @@ export default class FileTreeNav extends PluginData {
 				}
 				case "KeyW": {
 					await this.actions.openFileInNewWindow();
+					break;
+				}
+				case "KeyO": {
+					await this.actions.togglePreviewOnFocusedItem();
 					break;
 				}
 				default:
