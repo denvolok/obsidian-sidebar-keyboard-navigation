@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting } from "obsidian";
+import { PluginSettingTab, Setting, ToggleComponent } from "obsidian";
 import FileExplorerKeyboardNav from "./main";
 
 export class SettingsTab extends PluginSettingTab {
@@ -47,11 +47,35 @@ export class SettingsTab extends PluginSettingTab {
 			)
 			.addToggle((toggle) =>
 				toggle
-					.setValue(this.plugin.data.settings.doNotDuplicateOpenedFiles)
+					.setValue(this.plugin.data.settings.enableDuplicateOpenedFilesFiltering)
 					.onChange(async (value) => {
-						settings.doNotDuplicateOpenedFiles = value;
+						settings.enableDuplicateOpenedFilesFiltering = value;
+
+						backgroundOpeningHelpSetting.setDisabled(!value);
+						if (!value) {
+							backgroundOpeningHelpToggle.setValue(false);
+							settings.enableBackgroundOpenVisualHelp = false;
+						}
+
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		let backgroundOpeningHelpToggle: ToggleComponent;
+		const backgroundOpeningHelpSetting = new Setting(containerEl)
+			.setName("Show visual clue for background-opening")
+			.setDesc(
+				"When you try to background-open an already opened and visible file, there is no focus switch - so with this setting enabled, the target tab will be highlighted, so you don't get lost.",
+			)
+			.addToggle((toggle) => {
+				backgroundOpeningHelpToggle = toggle;
+
+				return toggle
+					.setValue(this.plugin.data.settings.enableBackgroundOpenVisualHelp)
+					.onChange(async (value) => {
+						settings.enableBackgroundOpenVisualHelp = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 }

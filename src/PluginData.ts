@@ -2,12 +2,14 @@ import { Plugin } from "obsidian";
 
 export interface PluginSettings {
 	excludedKeys: string;
-	doNotDuplicateOpenedFiles: boolean;
+	enableDuplicateOpenedFilesFiltering: boolean;
+	enableBackgroundOpenVisualHelp: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
 	excludedKeys: "Dr",
-	doNotDuplicateOpenedFiles: false,
+	enableDuplicateOpenedFilesFiltering: false,
+	enableBackgroundOpenVisualHelp: true,
 };
 
 export interface PluginStoredData {

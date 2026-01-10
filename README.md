@@ -54,8 +54,8 @@ focused - just press `j` or `k` to return focus.
 
 > **NOTE:** "focused node" - node with the cursor positioned on it(usually bordered), "selected node" - node selected
 > via selection<br>
-> Bindings are currently limited to using a single keystroke, and `Ctrl`/`Alt` modifiers are not used as these have high
-> chances to interfere with the native bindings.
+> Bindings are currently limited to using a single keystroke, and `Ctrl`/`Alt` modifiers are not used as these likely
+> to interfere with the native bindings.
 
 |        Key         | Action                                                                                                                                | Description                                                                                                                                                                                                                                                                                                             |                                                                                                                                           
 |:------------------:|:--------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -95,7 +95,7 @@ focused - just press `j` or `k` to return focus.
 |        `D`         | a) *if some nodes selected* - delete selected nodes<br>b) *otherwise* - delete focused node                                           | Works as native `Delete`                                                                                                                                                                                                                                                                                                |
 
 > **NOTE:** mappings for some destructive actions (e.g. delete note/folder) are disabled by default in Settings,
-> so you don't accidentally throw your precious stuff into the abyss, while exploring the plugin for the first time.
+> so you don't accidentally damage your precious stuff while exploring the plugin for the first time.
 
 ## Known Bugs and Current Limitations
 

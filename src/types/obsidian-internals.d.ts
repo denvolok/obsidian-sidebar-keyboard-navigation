@@ -62,6 +62,11 @@ declare module "obsidian" {
 		children: WorkspaceLeaf[];
 		insertChild: (idx: number, leaf: WorkspaceLeaf) => unknown;
 		selectTab: (leaf: WorkspaceLeaf) => void;
+		currentTab: number;
+	}
+
+	interface WorkspaceLeaf {
+		tabHeaderEl: HTMLElement;
 	}
 
 	interface FileExplorerView extends View {

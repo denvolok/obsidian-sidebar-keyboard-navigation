@@ -60,3 +60,7 @@
 	padding-left: 15px;
 }
 
+.sidebar-keyboard-nav-focused-tab {
+	background-color: var(--text-faint) !important;
+	transition: background-color .2s;
+}

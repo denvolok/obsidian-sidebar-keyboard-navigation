@@ -175,7 +175,7 @@ export class FileExplorerActions {
 		},
 	): Promise<void> {
 		if (options.shouldPreventDuplicate) {
-			const isFileAlreadyOpened = this.tryToRevelLeafForFile(focusedNode.file, {
+			const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
 				shouldFocus: options.shouldFocus,
 			});
 
@@ -204,7 +204,7 @@ export class FileExplorerActions {
 	): Promise<void> {
 		let newLeaf: WorkspaceLeaf;
 
-		const isFileAlreadyOpened = this.tryToRevelLeafForFile(focusedNode.file, {
+		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
 			shouldFocus: options.shouldFocus,
 		});
 
@@ -296,7 +296,7 @@ export class FileExplorerActions {
 	}
 
 	public async openFileInNewTab(focusedNode: FileExplorerFileNode) {
-		const isFileAlreadyOpened = this.tryToRevelLeafForFile(focusedNode.file, {
+		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
 			shouldFocus: false,
 		});
 
@@ -315,7 +315,7 @@ export class FileExplorerActions {
 	 * so it more likely to introduce bugs after Obsidian updates related logic.
 	 */
 	public async backgroundOpenFileInNewTab(focusedNode: FileExplorerFileNode) {
-		const isFileAlreadyOpened = this.tryToRevelLeafForFile(focusedNode.file, {
+		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
 			shouldFocus: false,
 		});
 
@@ -415,8 +415,8 @@ export class FileExplorerActions {
 		focusedNode.el.children[0]!.dispatchEvent(event);
 	}
 
-	private tryToRevelLeafForFile(file: TFile, options: { shouldFocus: boolean }): boolean {
-		if (!this.settings.doNotDuplicateOpenedFiles) {
+	private tryToRevealLeafForFile(file: TFile, options: { shouldFocus: boolean }): boolean {
+		if (!this.settings.enableDuplicateOpenedFilesFiltering) {
 			return false;
 		}
 
@@ -429,7 +429,18 @@ export class FileExplorerActions {
 		if (options.shouldFocus) {
 			this.app.workspace.setActiveLeaf(leaf);
 		} else if (leaf.parent instanceof WorkspaceTabs) {
+			const targetFileIdx = leaf.parent.children.findIndex((children) => children === leaf);
+			const currTabIdx = leaf.parent.currentTab;
+
 			leaf.parent.selectTab(leaf);
+
+			if (this.settings.enableBackgroundOpenVisualHelp && targetFileIdx === currTabIdx) {
+				leaf.tabHeaderEl.addClass("sidebar-keyboard-nav-focused-tab");
+
+				setTimeout(() => {
+					leaf.tabHeaderEl.removeClass("sidebar-keyboard-nav-focused-tab");
+				}, 300);
+			}
 		}
 
 		return true;
