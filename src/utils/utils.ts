@@ -24,6 +24,8 @@ export function mapCharacterToKeystroke(char: string): { code: string; shiftKey:
 				return { code: "Semicolon", shiftKey: false };
 			case ":":
 				return { code: "Semicolon", shiftKey: true };
+			case "?":
+				return { code: "Slash", shiftKey: true };
 			default:
 				throw new Error(`Unexpected character: ${char}`);
 		}

@@ -6,10 +6,16 @@ import { isFileNode, KeysMapper } from "./types";
 
 export class FileExplorerKeysMapper implements KeysMapper {
 	private app: App;
+	private settings: PluginSettings;
 	private actions: FileExplorerActions;
+
+	private get fileExplorer(): FileExplorerView {
+		return this.app.workspace.getActiveViewOfType(View) as FileExplorerView;
+	}
 
 	constructor(app: App, settings: PluginSettings) {
 		this.app = app;
+		this.settings = settings;
 		this.actions = new FileExplorerActions(settings, app);
 	}
 
@@ -19,6 +25,10 @@ export class FileExplorerKeysMapper implements KeysMapper {
 
 		if (event.shiftKey) {
 			switch (event.code) {
+				case "Slash": {
+					this.toggleHelpModal();
+					break;
+				}
 				case "KeyZ": {
 					this.actions.collapseAllFolders();
 					break;
@@ -251,4 +261,92 @@ export class FileExplorerKeysMapper implements KeysMapper {
 			}
 		}
 	}
+
+	public toggleHelpModal(): void {
+		const modalNode = document.querySelector(".sidebar-keyboard-nav");
+
+		if (modalNode != null) {
+			document.body.removeChild(modalNode);
+		} else {
+			const { left, top, width, height } = this.fileExplorer.containerEl.getBoundingClientRect();
+
+			let enabledKeysMarkup: string = "";
+			let disabledKeysMarkup: string = "";
+
+			keysHelp.forEach((keyHelp) => {
+				const row = `<tr><td>${keyHelp.key}</td><td>${keyHelp.action}</td></tr>`;
+				const isDisabledKey = this.settings.excludedKeys.includes(keyHelp.key);
+
+				if (isDisabledKey) {
+					disabledKeysMarkup = disabledKeysMarkup.concat(row);
+				} else {
+					enabledKeysMarkup = enabledKeysMarkup.concat(row);
+				}
+			});
+
+			const markup = `
+				<div 
+				  	class="sidebar-keyboard-nav"
+						style="left: ${left + 5}px; top: ${top + 5}px; width: ${width - 10}px; max-height: ${height - 10}px"
+				>
+					<div class="sidebar-keyboard-nav__title">Sidebar Keyboard Navigation - Help</div>
+					<div class="sidebar-keyboard-nav__close-help">Press "?" to close</div>
+					<table>
+						<thead>
+							<th>Key</th>
+							<th>Action</th>
+						</thead>
+						<tbody>
+							${enabledKeysMarkup}
+							${
+								disabledKeysMarkup.length > 0
+									? `<tr>
+												<td colspan = "2" style="font-style: italic; font-weight: 400">
+												 	Keys disabled in settings
+												</td>
+										</tr>
+										${disabledKeysMarkup}`
+									: ""
+							}
+						</tbody>
+					</table>
+				</div>
+			`;
+
+			document.querySelector(".app-container")!.insertAdjacentHTML("afterend", markup);
+		}
+	}
 }
+
+const keysHelp = [
+	{ key: "?", action: "Toggle this help menu" },
+	{ key: "j", action: "Move down" },
+	{ key: "k", action: "Move up" },
+	{ key: "J", action: "Move down and preview file" },
+	{ key: "k", action: "Move up and preview file" },
+	{ key: "g", action: "Focus the topmost root node" },
+	{ key: "G", action: "Focus the bottommost root node" },
+	{ key: "v", action: "Toggle node selection" },
+	{ key: "V", action: "Deselect all nodes" },
+	{ key: ";", action: "Toggle context menu" },
+	{ key: "h", action: "Close current folder" },
+	{ key: "H", action: "Close current folder recursively" },
+	{ key: "l", action: "Open folder/file" },
+	{ key: "L", action: "Open folder recursively, or file in background" },
+	{ key: "Z", action: "Close all folders" },
+	{ key: "s", action: "Open file in a new vertical split" },
+	{ key: "S", action: "Background-open file in a new vertical split" },
+	{ key: "i", action: "Open file in a new horizontal split" },
+	{ key: "I", action: "Background-open file in a new horizontal split" },
+	{ key: "t", action: "Open file in a new tab" },
+	{ key: "T", action: "Background-open file in a new tab" },
+	{ key: "w", action: "Open file in a new window" },
+	{ key: "o", action: "Toggle file preview" },
+	{ key: "n", action: "Create note in current folder" },
+	{ key: "N", action: "Create note in parent folder" },
+	{ key: "f", action: "Create folder in current folder" },
+	{ key: "F", action: "Create folder in parent folder" },
+	{ key: "r", action: "Rename node" },
+	{ key: "c", action: "Clone node" },
+	{ key: "D", action: "Delete focused node, or selected nodes" },
+];

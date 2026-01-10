@@ -25,7 +25,7 @@ export class SettingsTab extends PluginSettingTab {
 					.setPlaceholder("Example: s;")
 					.setValue(settings.excludedKeys)
 					.onChange(async (value) => {
-						const isInvalidValue = value.match(/^[jJkKgGvVhHlLZsSiItTwonNfFrcD;]*$/) == null; // TODO: no linking with the actions.
+						const isInvalidValue = value.match(/^[jJkKgGvVhHlLZsSiItTwonNfFrcD;?]*$/) == null; // TODO: no linking with the actions.
 						const isDuplicateEntries = value
 							.split("")
 							.some((char, i, arr) => arr.indexOf(char) !== i);

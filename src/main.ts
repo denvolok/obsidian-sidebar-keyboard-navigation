@@ -25,6 +25,7 @@ export default class FileExplorerKeyboardNav extends PluginData {
 
 	public onunload() {
 		document.removeEventListener("keydown", this.handleKeyPress);
+		this.hideHelpModal();
 	}
 
 	/**
@@ -43,6 +44,7 @@ export default class FileExplorerKeyboardNav extends PluginData {
 		} else {
 			// TODO: try to make this call conditional (based on Obsidian API).
 			document.removeEventListener("keydown", this.handleKeyPress);
+			this.hideHelpModal();
 		}
 	};
 
@@ -97,5 +99,13 @@ export default class FileExplorerKeyboardNav extends PluginData {
 		});
 
 		return !isKeyDisabledInSettings;
+	}
+
+	private hideHelpModal(): void {
+		const node = document.querySelector(".sidebar-keyboard-nav");
+
+		if (node != null) {
+			document.body.removeChild(node);
+		}
 	}
 }
