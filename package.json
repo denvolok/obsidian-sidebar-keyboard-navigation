@@ -1,7 +1,7 @@
 {
-	"name": "file-explorer-keyboard-nav",
+	"name": "sidebar-keyboard-navigation",
 	"version": "0.0.1-dev",
-	"description": "Smoothly navigate the native File Explorer using keyboard only.",
+	"description": "Smoothly navigate the native File Explorer using keyboard only (Vim-like).",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

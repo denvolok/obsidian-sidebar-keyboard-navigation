@@ -1,9 +1,9 @@
 {
-  "id": "file-explorer-keyboard-nav",
-  "name": "File Explorer Keyboard Nav",
+  "id": "sidebar-keyboard-navigation",
+  "name": "Sidebar Keyboard Navigation",
   "version": "0.0.1-dev",
   "minAppVersion": "0.15.0",
-  "description": "Smoothly navigate the native File Explorer using keyboard only.",
+  "description": "Smoothly navigate the native File Explorer using keyboard only (Vim-like).",
   "author": "Denis Volok <denis.volok@pm.me>",
   "isDesktopOnly": true
 }
