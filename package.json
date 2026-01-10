@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-file-explorer-navigation",
+	"name": "file-explorer-keyboard-nav",
 	"version": "0.0.1-dev",
-	"description": "Navigate and interact with File Explorer using keyboard",
+	"description": "Smoothly navigate the native File Explorer using keyboard only.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

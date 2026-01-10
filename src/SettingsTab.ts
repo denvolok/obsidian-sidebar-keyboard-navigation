@@ -1,11 +1,10 @@
 import { PluginSettingTab, Setting } from "obsidian";
-import FileTreeNav from "./main";
-import { validCharsRegex } from "./utils/utils";
+import FileExplorerKeyboardNav from "./main";
 
 export class SettingsTab extends PluginSettingTab {
-	private plugin: FileTreeNav;
+	private plugin: FileExplorerKeyboardNav;
 
-	constructor(plugin: FileTreeNav) {
+	constructor(plugin: FileExplorerKeyboardNav) {
 		super(plugin.app, plugin);
 		this.plugin = plugin;
 	}
@@ -18,14 +17,15 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Excluded keys")
-			.setDesc("List of keys to ignore. Only use keys mentioned in the docs. Case-sensitive.")
+			.setDesc(
+				"List of keys to ignore. Only the keys mentioned in the docs allowed. Case-sensitive.",
+			)
 			.addText((text) =>
 				text
-					// eslint-disable-next-line obsidianmd/ui/sentence-case
-					.setPlaceholder("Example: Zl;")
+					.setPlaceholder("Example: s;")
 					.setValue(settings.excludedKeys)
 					.onChange(async (value) => {
-						const isInvalidValue = value.match(validCharsRegex) == null;
+						const isInvalidValue = value.match(/^[jJkKgGvVhHlLZsSiItTwonNfFrcD;]*$/) == null; // TODO: no linking with the actions.
 						const isDuplicateEntries = value
 							.split("")
 							.some((char, i, arr) => arr.indexOf(char) !== i);
@@ -36,6 +36,20 @@ export class SettingsTab extends PluginSettingTab {
 						}
 
 						settings.excludedKeys = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Prevent opening duplicate files")
+			.setDesc(
+				"If enabled, trying to open an already opened file will switch to it instead (or, if a background-opening action used, focus the tab without switching to it).",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.data.settings.doNotDuplicateOpenedFiles)
+					.onChange(async (value) => {
+						settings.doNotDuplicateOpenedFiles = value;
 						await this.plugin.saveSettings();
 					}),
 			);

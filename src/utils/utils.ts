@@ -4,8 +4,6 @@ export function removeExtensionFromPath(path: string) {
 	return t === -1 || t === path.length - 1 || t === 0 ? path : path.substr(0, t);
 }
 
-export const validCharsRegex = new RegExp(/^[a-zA-Z;]*$/);
-
 /**
  * Example: "A" => { code: "KeyA", shiftKey: true }
  */

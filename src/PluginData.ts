@@ -1,14 +1,16 @@
 import { Plugin } from "obsidian";
 
-interface PluginSettings {
+export interface PluginSettings {
 	excludedKeys: string;
+	doNotDuplicateOpenedFiles: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
-	excludedKeys: "Dr", // TODO: this syntax might not work if needed "space" and prob some other stuff
+	excludedKeys: "Dr",
+	doNotDuplicateOpenedFiles: false,
 };
 
-interface PluginStoredData {
+export interface PluginStoredData {
 	settings: PluginSettings;
 }
 

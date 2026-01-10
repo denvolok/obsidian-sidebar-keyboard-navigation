@@ -28,7 +28,7 @@ export type FileExplorerNode = FileExplorerFileNode | FileExplorerFolderNode;
  */
 declare module "obsidian" {
 	interface Vault {
-		getAvailablePath(path: string, extension: string): string;
+		getAvailablePath(path: string, extension?: string): string;
 	}
 
 	interface App {
@@ -61,9 +61,10 @@ declare module "obsidian" {
 	interface WorkspaceTabs {
 		children: WorkspaceLeaf[];
 		insertChild: (idx: number, leaf: WorkspaceLeaf) => unknown;
+		selectTab: (leaf: WorkspaceLeaf) => void;
 	}
 
-	interface FileExplorer extends View {
+	interface FileExplorerView extends View {
 		tree: {
 			root: {
 				vChildren: { children: FileExplorerNode[] };
@@ -92,4 +93,15 @@ declare module "obsidian" {
 
 		onFileMouseover(event: MouseEvent, element: Element): void;
 	}
+
+	// type ViewType =
+	// 	| "markdown"
+	// 	| "file-explorer"
+	// 	| "search"
+	// 	| "bookmarks"
+	// 	| "backlink"
+	// 	| "outgoing-link"
+	// 	| "tag"
+	// 	| "all-properties"
+	// 	| "outline";
 }
