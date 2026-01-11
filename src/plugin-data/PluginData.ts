@@ -20,7 +20,9 @@ export class PluginData extends Plugin {
 	public data: PluginStoredData;
 
 	public async loadSettings(): Promise<void> {
-		const storedData = (await this.loadData()) as PluginStoredData;
+		const storedData = ((await this.loadData()) as PluginStoredData | undefined) ?? {
+			settings: {},
+		};
 		this.data = {
 			...storedData,
 			settings: {
