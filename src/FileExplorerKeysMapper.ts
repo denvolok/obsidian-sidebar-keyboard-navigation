@@ -1,5 +1,5 @@
 import { FileExplorerActions } from "./FileExplorerActions";
-import { PluginSettings } from "./PluginData";
+import { PluginSettings } from "./plugin-data/PluginData";
 import { App, FileExplorerView, View } from "obsidian";
 
 import { isFileNode, KeysMapper } from "./types";
@@ -270,50 +270,90 @@ export class FileExplorerKeysMapper implements KeysMapper {
 		} else {
 			const { left, top, width, height } = this.fileExplorer.containerEl.getBoundingClientRect();
 
-			let enabledKeysMarkup: string = "";
-			let disabledKeysMarkup: string = "";
+			const elContainer = document.createElement("div");
+			elContainer.classList.add("sidebar-keyboard-nav");
+			elContainer.style = `left: ${left + 5}px; top: ${top + 5}px; width: ${width - 10}px; max-height: ${height - 10}px`;
+
+			const elTitle = document.createElement("div");
+			// eslint-disable-next-line obsidianmd/ui/sentence-case
+			elTitle.textContent = "Sidebar Keyboard Navigation - Help";
+			elTitle.classList.add("sidebar-keyboard-nav__title");
+
+			const elCloseHelp = document.createElement("div");
+			elCloseHelp.textContent = `Press "?" to close`;
+			elCloseHelp.classList.add("sidebar-keyboard-nav__close-help");
+
+			elContainer.appendChild(elTitle);
+			elContainer.appendChild(elCloseHelp);
+
+			const elTable = document.createElement("table");
+
+			elContainer.appendChild(elTable);
+
+			const elThead = document.createElement("thead");
+			const elTbody = document.createElement("tbody");
+
+			elTable.append(elThead, elTbody);
+
+			const th1 = document.createElement("th");
+			const th2 = document.createElement("th");
+			th1.textContent = "Key";
+			th2.textContent = "Action";
+
+			elThead.append(th1, th2);
+
+			const enabledKeys: (typeof keysHelp)[0][] = [];
+			const disabledKeys: (typeof keysHelp)[0][] = [];
 
 			keysHelp.forEach((keyHelp) => {
-				const row = `<tr><td>${keyHelp.key}</td><td>${keyHelp.action}</td></tr>`;
 				const isDisabledKey = this.settings.excludedKeys.includes(keyHelp.key);
 
 				if (isDisabledKey) {
-					disabledKeysMarkup = disabledKeysMarkup.concat(row);
+					disabledKeys.push(keyHelp);
 				} else {
-					enabledKeysMarkup = enabledKeysMarkup.concat(row);
+					enabledKeys.push(keyHelp);
 				}
 			});
 
-			const markup = `
-				<div 
-				  	class="sidebar-keyboard-nav"
-						style="left: ${left + 5}px; top: ${top + 5}px; width: ${width - 10}px; max-height: ${height - 10}px"
-				>
-					<div class="sidebar-keyboard-nav__title">Sidebar Keyboard Navigation - Help</div>
-					<div class="sidebar-keyboard-nav__close-help">Press "?" to close</div>
-					<table>
-						<thead>
-							<th>Key</th>
-							<th>Action</th>
-						</thead>
-						<tbody>
-							${enabledKeysMarkup}
-							${
-								disabledKeysMarkup.length > 0
-									? `<tr>
-												<td colspan = "2" style="font-style: italic; font-weight: 400">
-												 	Keys disabled in settings
-												</td>
-										</tr>
-										${disabledKeysMarkup}`
-									: ""
-							}
-						</tbody>
-					</table>
-				</div>
-			`;
+			if (enabledKeys.length > 0) {
+				enabledKeys.forEach((keyHelp) => {
+					const row = document.createElement("tr");
+					const td1 = document.createElement("td");
+					const td2 = document.createElement("td");
 
-			document.querySelector(".app-container")!.insertAdjacentHTML("afterend", markup);
+					td1.textContent = keyHelp.key;
+					td2.textContent = keyHelp.action;
+
+					row.append(td1, td2);
+					elTbody.appendChild(row);
+				});
+			}
+
+			if (disabledKeys.length > 0) {
+				const rowTitle = document.createElement("tr");
+				const tdTitle = document.createElement("td");
+
+				tdTitle.colSpan = 2;
+				tdTitle.classList.add("sidebar-keyboard-nav-disabled-settings-td");
+				tdTitle.textContent = "Keys disabled in settings";
+
+				rowTitle.appendChild(tdTitle);
+				elTbody.appendChild(rowTitle);
+
+				disabledKeys.forEach((keyHelp) => {
+					const row = document.createElement("tr");
+					const td1 = document.createElement("td");
+					const td2 = document.createElement("td");
+
+					td1.textContent = keyHelp.key;
+					td2.textContent = keyHelp.action;
+
+					row.append(td1, td2);
+					elTbody.appendChild(row);
+				});
+			}
+
+			document.body.appendChild(elContainer);
 		}
 	}
 }

@@ -17,7 +17,7 @@ import {
 	FileExplorerFolderNode,
 	FileExplorerNode,
 } from "./types/obsidian-internals";
-import { PluginSettings } from "./PluginData";
+import { PluginSettings } from "./plugin-data/PluginData";
 
 export class FileExplorerActions {
 	constructor(

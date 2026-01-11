@@ -1,6 +1,6 @@
-import { SettingsTab } from "./SettingsTab";
+import { SettingsTab } from "./plugin-data/SettingsTab";
 import { App, PluginManifest, View, WorkspaceLeaf } from "obsidian";
-import { PluginData } from "./PluginData";
+import { PluginData } from "./plugin-data/PluginData";
 import { mapCharacterToKeystroke } from "./utils/utils";
 import { FileExplorerKeysMapper } from "./FileExplorerKeysMapper";
 import { KeysMapper, ViewType } from "types";

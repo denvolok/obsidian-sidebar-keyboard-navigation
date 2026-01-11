@@ -1,5 +1,5 @@
 import { PluginSettingTab, Setting, ToggleComponent } from "obsidian";
-import FileExplorerKeyboardNav from "./main";
+import FileExplorerKeyboardNav from "../main";
 
 export class SettingsTab extends PluginSettingTab {
 	private plugin: FileExplorerKeyboardNav;

@@ -64,3 +64,8 @@
 	background-color: var(--text-faint) !important;
 	transition: background-color .2s;
 }
+
+.sidebar-keyboard-nav-disabled-settings-td {
+	font-style: italic;
+	font-weight: 400 !important;
+}
