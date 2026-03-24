@@ -1,9 +1,12 @@
-import { SplitDirection, TFile, TFolder, View, WorkspaceLeaf } from "obsidian";
+import { SplitDirection, TFile, TFolder, View } from "obsidian";
 
 export interface FileExplorerNodeBase {
 	coverEl: HTMLElement;
 	el: HTMLElement;
-	parent: FileExplorerFolderNode;
+	/**
+	 * Empty for root nodes.
+	 */
+	parent?: FileExplorerFolderNode;
 }
 
 export interface FileExplorerFileNode extends FileExplorerNodeBase {

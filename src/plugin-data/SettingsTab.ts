@@ -1,10 +1,10 @@
 import { PluginSettingTab, Setting, ToggleComponent } from "obsidian";
-import FileExplorerKeyboardNav from "../main";
+import SidebarKeyboardNav from "../main";
 
 export class SettingsTab extends PluginSettingTab {
-	private plugin: FileExplorerKeyboardNav;
+	private plugin: SidebarKeyboardNav;
 
-	constructor(plugin: FileExplorerKeyboardNav) {
+	constructor(plugin: SidebarKeyboardNav) {
 		super(plugin.app, plugin);
 		this.plugin = plugin;
 	}
@@ -25,10 +25,8 @@ export class SettingsTab extends PluginSettingTab {
 					.setPlaceholder("Example: s;")
 					.setValue(settings.excludedKeys)
 					.onChange(async (value) => {
-						const isInvalidValue = value.match(/^[jJkKgGvVhHlLZsSiItTwonNfFrcD;?]*$/) == null; // TODO: no linking with the actions.
-						const isDuplicateEntries = value
-							.split("")
-							.some((char, i, arr) => arr.indexOf(char) !== i);
+						const isInvalidValue = /^[jJkKgGvVhHlLZsSiItTwonNfFrcD;?]*$/.exec(value) == null; // TODO: no linking with the actions.
+						const isDuplicateEntries = new Set(value).size !== value.length;
 
 						if (isInvalidValue || isDuplicateEntries) {
 							text.setValue(settings.excludedKeys);

@@ -8,12 +8,12 @@ export function removeExtensionFromPath(path: string) {
  * Example: "A" => { code: "KeyA", shiftKey: true }
  */
 export function mapCharacterToKeystroke(char: string): { code: string; shiftKey: boolean } {
-	if (char.match(/^[a-z]$/)) {
+	if (/^[a-z]$/.exec(char)) {
 		return {
 			code: `Key${char.toUpperCase()}`,
 			shiftKey: false,
 		};
-	} else if (char.match(/^[A-Z]$/)) {
+	} else if (/^[A-Z]$/.exec(char)) {
 		return {
 			code: `Key${char}`,
 			shiftKey: true,

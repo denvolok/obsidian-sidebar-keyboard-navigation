@@ -22,19 +22,18 @@
 		"esbuild": "0.25.5",
 		"eslint": "9.30.1",
 		"eslint-config-prettier": "9.1.0",
-		"eslint-plugin-import": "2.32.0",
 		"eslint-plugin-obsidianmd": "0.1.9",
 		"eslint-plugin-prettier": "5.1.3",
 		"globals": "14.0.0",
 		"husky": "9.0.11",
-		"lint-staged": "10.2.11",
+		"nano-staged": "0.9.0",
 		"obsidian": "1.11.0",
 		"prettier": "3.2.5",
 		"tslib": "2.4.0",
 		"typescript": "5.8.3",
 		"typescript-eslint": "8.51.0"
 	},
-	"lint-staged": {
+	"nano-staged": {
 		"*.(ts)": [
 			"eslint --cache --quiet --fix",
 			"prettier --write"

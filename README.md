@@ -7,6 +7,10 @@ Inspired by popular Vim plugins like NERDTree and Neo-tree.
 This plugin fills the gaps in the native app's functionality for users who rely on a keyboard-based workflow and do not
 use custom file explorers (via community plugins).
 
+## What It Does
+
+## Who You May Need It
+
 ## Features
 
 - Use intuitive mappings for the native Obsidian actions.
@@ -137,3 +141,5 @@ focused(focus lost) - just press `j` or `k` to get focus back.
 	invoking the context menu (`;`) will open it for the focused node. If you want to show the context menu for the
 	selected nodes - you should move focus to one of selected nodes. _There is no technical limitation to fix it, but more
 	feedback needed._
+
+## Similar Projects

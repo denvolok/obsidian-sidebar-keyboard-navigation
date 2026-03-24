@@ -126,6 +126,10 @@ export class FileExplorerActions {
 	}
 
 	public deleteNodeAndFocusNext(focusedNode: FileExplorerNode): void {
+		if (focusedNode.parent == null) {
+			return;
+		}
+
 		const isSingleChild = focusedNode.parent.vChildren.children.length === 1;
 		let nextItemToFocus: FileExplorerNode | null;
 
@@ -359,30 +363,44 @@ export class FileExplorerActions {
 	}
 
 	public async openFileInNewWindow(focusedNode: FileExplorerFileNode) {
-		const selectedFileNodes = Array.from(this.fileExplorer.tree.selectedDoms).filter((node) =>
+		const selectedFiles = Array.from(this.fileExplorer.tree.selectedDoms).filter((node) =>
 			isFileNode(node),
 		);
 		const newLeaf = this.app.workspace.getLeaf("window");
 
-		if (selectedFileNodes.length === 0) {
+		if (selectedFiles.length === 0) {
 			await newLeaf.openFile(focusedNode.file);
 		} else {
-			const tabs = newLeaf.parent;
-			if (!(tabs instanceof WorkspaceTabs)) {
-				return;
+			await this.openSelectedFilesInNewWindow(newLeaf, selectedFiles);
+		}
+	}
+
+	private async openSelectedFilesInNewWindow(
+		windowLeaf: WorkspaceLeaf,
+		selectedFiles: FileExplorerFileNode[],
+	) {
+		const tabs = windowLeaf.parent;
+		if (!(tabs instanceof WorkspaceTabs)) {
+			return;
+		}
+
+		// NOTE: using a "for" loop to preserve the order of selected nodes.
+		for (let i = 0; i < selectedFiles.length; i++) {
+			const selectedFileNode = selectedFiles[i];
+
+			// NOTE: this check required to satisfy `noUncheckedIndexedAccess: true`.
+			if (selectedFileNode == null) {
+				continue;
 			}
 
-			for (let i = 0; i < selectedFileNodes.length; i++) {
-				const selectedFileNode = selectedFileNodes[i]!;
-
-				if (i === 0) {
-					await newLeaf.openFile(selectedFileNode.file); // NOTE: no new tab, as the first tab already created by `getLeaf`.
-				} else {
-					// @ts-ignore // "this.app" is missing in typings
-					const newTab = new WorkspaceLeaf(this.app);
-					tabs.insertChild(tabs.children.length, newTab);
-					await newTab.openFile(selectedFileNode.file);
-				}
+			if (i === 0) {
+				// NOTE: skipping tab creation for the first file, as it already created by `getLeaf`
+				await windowLeaf.openFile(selectedFileNode.file);
+			} else {
+				// @ts-ignore // "this.app" is missing in typings
+				const newTab = new WorkspaceLeaf(this.app);
+				tabs.insertChild(tabs.children.length, newTab);
+				await newTab.openFile(selectedFileNode.file);
 			}
 		}
 	}
@@ -390,10 +408,10 @@ export class FileExplorerActions {
 	public async toggleFilePreviewPopup(focusedNode: FileExplorerFileNode) {
 		if (this.isPreviewPopupVisible) {
 			this.hidePreviewPopup(focusedNode);
-		} else {
+		} else if (focusedNode.el.children[0] != null) {
 			await this.app.internalPlugins.plugins["page-preview"].instance.onLinkHover(
 				this.fileExplorer,
-				focusedNode.el.children[0]!,
+				focusedNode.el.children[0],
 				focusedNode.file.path,
 				"",
 			);
@@ -408,11 +426,15 @@ export class FileExplorerActions {
 	// }
 
 	private hidePreviewPopup(focusedNode: FileExplorerFileNode) {
+		if (focusedNode.el.children[0] == null) {
+			return;
+		}
+
 		const event = new MouseEvent("mouseout", {
 			bubbles: true,
 			cancelable: true,
 		});
-		focusedNode.el.children[0]!.dispatchEvent(event);
+		focusedNode.el.children[0].dispatchEvent(event);
 	}
 
 	private tryToRevealLeafForFile(file: TFile, options: { shouldFocus: boolean }): boolean {

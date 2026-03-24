@@ -1,16 +1,12 @@
 import { SettingsTab } from "./plugin-data/SettingsTab";
-import { App, PluginManifest, View, WorkspaceLeaf } from "obsidian";
+import { View, WorkspaceLeaf } from "obsidian";
 import { PluginData } from "./plugin-data/PluginData";
 import { mapCharacterToKeystroke } from "./utils/utils";
 import { FileExplorerKeysMapper } from "./FileExplorerKeysMapper";
 import { KeysMapper, ViewType } from "types";
 
-export default class FileExplorerKeyboardNav extends PluginData {
-	private keysMappers: { [key: string]: KeysMapper };
-
-	constructor(app: App, manifest: PluginManifest) {
-		super(app, manifest);
-	}
+export default class SidebarKeyboardNav extends PluginData {
+	private keysMappers: Record<string, KeysMapper>;
 
 	public async onload(): Promise<void> {
 		await this.loadSettings();
@@ -79,9 +75,10 @@ export default class FileExplorerKeyboardNav extends PluginData {
 		}
 
 		const isSomeInputFocused =
-			document.activeElement?.classList.contains("is-being-renamed") ||
-			document.activeElement?.tagName === "INPUT" ||
-			document.activeElement?.getAttribute("contenteditable") === "true";
+			document.activeElement != null &&
+			(document.activeElement.classList.contains("is-being-renamed") ||
+				document.activeElement.tagName === "INPUT" ||
+				document.activeElement.getAttribute("contenteditable") === "true");
 
 		if (isSomeInputFocused) {
 			return false;
