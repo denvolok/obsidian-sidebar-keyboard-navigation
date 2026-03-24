@@ -31,3 +31,13 @@ export function mapCharacterToKeystroke(char: string): { code: string; shiftKey:
 		}
 	}
 }
+
+export const domUtils = {
+	isContextMenuOpened(): boolean {
+		// NOTE: using extra selectors to avoid potential classname collisions
+		return document.querySelector(".menu > .menu-scroll") != null;
+	},
+	isPreviewPopupVisible(): boolean {
+		return document.querySelector(".popover.hover-popover") != null;
+	},
+};

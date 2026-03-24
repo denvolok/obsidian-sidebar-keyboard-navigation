@@ -10,7 +10,7 @@ import {
 	WorkspaceLeaf,
 	WorkspaceTabs,
 } from "obsidian";
-import { removeExtensionFromPath } from "./utils/utils";
+import { domUtils, removeExtensionFromPath } from "./utils/utils";
 import { isFileNode, ViewType } from "./types";
 import {
 	FileExplorerFileNode,
@@ -37,22 +37,13 @@ export class FileExplorerActions {
 		return this.app.workspace.getActiveViewOfType(View) as FileExplorerView;
 	}
 
-	private get isContextMenuOpened(): boolean {
-		// NOTE: using extra selectors to avoid potential classname collisions
-		return document.querySelector(".menu > .menu-scroll") != null;
-	}
-
-	private get isPreviewPopupVisible(): boolean {
-		return document.querySelector(".popover.hover-popover") != null;
-	}
-
 	public collapseAllFolders(): void {
 		this.fileExplorer.tree.isAllCollapsed = false;
 		this.fileExplorer.tree.setCollapseAll(true);
 	}
 
 	public toggleContextMenu(focusedNode: FileExplorerNode): void {
-		if (this.isContextMenuOpened) {
+		if (domUtils.isContextMenuOpened()) {
 			const hideEvent = new KeyboardEvent("keydown", {
 				key: "Escape",
 				bubbles: true,
@@ -78,51 +69,33 @@ export class FileExplorerActions {
 	}
 
 	public moveFocusDown(_event: KeyboardEvent): void {
-		if (this.isContextMenuOpened) {
-			const event = new KeyboardEvent("keydown", {
+		let event = _event;
+
+		if (event.shiftKey) {
+			// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
+			event = new KeyboardEvent("keydown", {
 				key: "ArrowDown",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(event);
-		} else {
-			let event = _event;
-
-			if (event.shiftKey) {
-				// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
-				event = new KeyboardEvent("keydown", {
-					key: "ArrowDown",
-					bubbles: true,
-					cancelable: true,
-				});
-			}
-
-			this.fileExplorer.tree.onKeyArrowDown(event);
 		}
+
+		this.fileExplorer.tree.onKeyArrowDown(event);
 	}
 
 	public moveFocusUp(_event: KeyboardEvent): void {
-		if (this.isContextMenuOpened) {
-			const event = new KeyboardEvent("keydown", {
+		let event = _event;
+
+		if (event.shiftKey) {
+			// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
+			event = new KeyboardEvent("keydown", {
 				key: "ArrowUp",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(event);
-		} else {
-			let event = _event;
-
-			if (event.shiftKey) {
-				// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
-				event = new KeyboardEvent("keydown", {
-					key: "ArrowUp",
-					bubbles: true,
-					cancelable: true,
-				});
-			}
-
-			this.fileExplorer.tree.onKeyArrowUp(event);
 		}
+
+		this.fileExplorer.tree.onKeyArrowUp(event);
 	}
 
 	public collapseCurrentFolder(event: KeyboardEvent): void {
@@ -428,7 +401,7 @@ export class FileExplorerActions {
 	}
 
 	public async toggleFilePreviewPopup(focusedNode: FileExplorerFileNode) {
-		if (this.isPreviewPopupVisible) {
+		if (domUtils.isPreviewPopupVisible()) {
 			this.hidePreviewPopup(focusedNode);
 		} else if (focusedNode.el.children[0] != null) {
 			await this.app.internalPlugins.plugins["page-preview"].instance.onLinkHover(

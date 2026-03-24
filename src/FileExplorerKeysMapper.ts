@@ -3,6 +3,7 @@ import { PluginSettings } from "./plugin-data/PluginData";
 import { App, FileExplorerView, View } from "obsidian";
 
 import { isFileNode, KeysMapper } from "./types";
+import { domUtils } from "./utils/utils";
 
 export class FileExplorerKeysMapper implements KeysMapper {
 	private app: App;
@@ -23,7 +24,57 @@ export class FileExplorerKeysMapper implements KeysMapper {
 		const focusedNode = (this.app.workspace.getActiveViewOfType(View) as FileExplorerView).tree
 			.focusedItem;
 
-		if (event.shiftKey) {
+		// Context menu represents a separate key-mapping group.
+		if (domUtils.isContextMenuOpened()) {
+			if (!event.shiftKey) {
+				switch (event.code) {
+					case "Semicolon":
+						if (focusedNode == null) {
+							return;
+						}
+
+						this.actions.toggleContextMenu(focusedNode);
+						break;
+					case "KeyL": {
+						const event = new KeyboardEvent("keydown", {
+							key: "ArrowRight",
+							bubbles: true,
+							cancelable: true,
+						});
+						document.dispatchEvent(event);
+						break;
+					}
+					case "KeyH": {
+						const event = new KeyboardEvent("keydown", {
+							key: "ArrowLeft",
+							bubbles: true,
+							cancelable: true,
+						});
+						document.dispatchEvent(event);
+						break;
+					}
+					case "KeyJ": {
+						const event = new KeyboardEvent("keydown", {
+							key: "ArrowDown",
+							bubbles: true,
+							cancelable: true,
+						});
+						document.dispatchEvent(event);
+						break;
+					}
+					case "KeyK": {
+						const event = new KeyboardEvent("keydown", {
+							key: "ArrowUp",
+							bubbles: true,
+							cancelable: true,
+						});
+						document.dispatchEvent(event);
+						break;
+					}
+					default:
+				}
+			}
+		} else if (event.shiftKey) {
 			switch (event.code) {
 				case "Slash": {
 					this.toggleHelpModal();
