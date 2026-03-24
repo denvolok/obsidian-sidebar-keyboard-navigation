@@ -19,6 +19,14 @@ import {
 } from "./types/obsidian-internals";
 import { PluginSettings } from "./plugin-data/PluginData";
 
+/**
+ * Actions available in File Explorer.
+ *
+ * public functions - actions, private - utils.
+ * For the sake of simplicity, all actions are grouped in a single class
+ * (to avoid the burden of dependency/relation management). Should not be a
+ * problem if functions kept simple and minimal.
+ */
 export class FileExplorerActions {
 	constructor(
 		private settings: PluginSettings,
@@ -30,7 +38,7 @@ export class FileExplorerActions {
 	}
 
 	private get isContextMenuOpened(): boolean {
-		// NOTE: using extra selectors to avoid potential classname collisions.
+		// NOTE: using extra selectors to avoid potential classname collisions
 		return document.querySelector(".menu > .menu-scroll") != null;
 	}
 
@@ -45,15 +53,15 @@ export class FileExplorerActions {
 
 	public toggleContextMenu(focusedNode: FileExplorerNode): void {
 		if (this.isContextMenuOpened) {
-			const event = new KeyboardEvent("keydown", {
+			const hideEvent = new KeyboardEvent("keydown", {
 				key: "Escape",
 				bubbles: true,
 				cancelable: true,
 			});
-			document.dispatchEvent(event);
+			document.dispatchEvent(hideEvent);
 		} else {
-			const focusedElement = focusedNode.el.querySelector(".nav-folder-title, .nav-file-title");
-			if (focusedElement == null) {
+			const focusedNodeTitle = focusedNode.el.querySelector(".nav-folder-title, .nav-file-title");
+			if (focusedNodeTitle == null) {
 				return;
 			}
 
@@ -61,11 +69,11 @@ export class FileExplorerActions {
 				bubbles: true,
 				cancelable: true,
 				view: window,
-				clientX: focusedElement.getBoundingClientRect().left,
-				clientY: focusedElement.getBoundingClientRect().top,
+				clientX: focusedNodeTitle.getBoundingClientRect().left,
+				clientY: focusedNodeTitle.getBoundingClientRect().top,
 			});
 
-			focusedElement.dispatchEvent(contextmenuEvent);
+			focusedNodeTitle.dispatchEvent(contextmenuEvent);
 		}
 	}
 
@@ -81,7 +89,7 @@ export class FileExplorerActions {
 			let event = _event;
 
 			if (event.shiftKey) {
-				// NOTE: removing `shiftKey` from the event to avoid app's native behavior to select focused item.
+				// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
 				event = new KeyboardEvent("keydown", {
 					key: "ArrowDown",
 					bubbles: true,
@@ -105,7 +113,7 @@ export class FileExplorerActions {
 			let event = _event;
 
 			if (event.shiftKey) {
-				// NOTE: removing `shiftKey` from the event to avoid app's native behavior to select focused item.
+				// NOTE: removing "shiftKey" from the event to avoid app's native behavior to select focused item.
 				event = new KeyboardEvent("keydown", {
 					key: "ArrowUp",
 					bubbles: true,
@@ -126,22 +134,23 @@ export class FileExplorerActions {
 	}
 
 	public deleteNodeAndFocusNext(focusedNode: FileExplorerNode): void {
+		// NOTE: not expected case. Just type checking.
 		if (focusedNode.parent == null) {
 			return;
 		}
 
 		const isSingleChild = focusedNode.parent.vChildren.children.length === 1;
-		let nextItemToFocus: FileExplorerNode | null;
+		let nextNodeToFocus: FileExplorerNode | null;
 
 		if (isSingleChild) {
 			// TODO: should handle case when deleting multiple items. Currently no item focused.
 			const isChildOfRootNode = focusedNode.parent.parent == null;
-			nextItemToFocus = isChildOfRootNode ? null : focusedNode.parent;
+			nextNodeToFocus = isChildOfRootNode ? null : focusedNode.parent;
 		} else {
 			const focusedNodeIdx = focusedNode.parent.vChildren.children.findIndex(
 				(children) => children.el === focusedNode.el,
 			);
-			nextItemToFocus =
+			nextNodeToFocus =
 				focusedNode.parent.vChildren.children[focusedNodeIdx + 1] ??
 				focusedNode.parent.vChildren.children[focusedNodeIdx - 1] ??
 				null;
@@ -154,7 +163,7 @@ export class FileExplorerActions {
 		});
 		document.dispatchEvent(event);
 
-		if (nextItemToFocus != null) {
+		if (nextNodeToFocus != null) {
 			// NOTE: trying to reduce border flickering by delaying its rendering.
 			setTimeout(() => {
 				const isFileExplorerFocused =
@@ -165,7 +174,7 @@ export class FileExplorerActions {
 					return;
 				}
 
-				this.fileExplorer.tree.setFocusedItem(nextItemToFocus);
+				this.fileExplorer.tree.setFocusedItem(nextNodeToFocus);
 			}, 70);
 		}
 	}
@@ -178,8 +187,8 @@ export class FileExplorerActions {
 			shouldPreventDuplicate: boolean;
 		},
 	): Promise<void> {
-		if (options.shouldPreventDuplicate) {
-			const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
+		if (options.shouldPreventDuplicate && this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(focusedNode.file, {
 				shouldFocus: options.shouldFocus,
 			});
 
@@ -199,22 +208,24 @@ export class FileExplorerActions {
 		}
 	}
 
-	public async openFocusedFileInNewSplit(
+	public async openFileInNewSplit(
 		focusedNode: FileExplorerFileNode,
 		options: {
 			direction: SplitDirection;
 			shouldFocus: boolean;
 		},
 	): Promise<void> {
-		let newLeaf: WorkspaceLeaf;
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(focusedNode.file, {
+				shouldFocus: options.shouldFocus,
+			});
 
-		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
-			shouldFocus: options.shouldFocus,
-		});
-
-		if (isFileAlreadyOpened) {
-			return;
+			if (isFileAlreadyOpened) {
+				return;
+			}
 		}
+
+		let newLeaf: WorkspaceLeaf;
 
 		if (options.shouldFocus) {
 			newLeaf = this.app.workspace.getLeaf("split", options.direction);
@@ -225,7 +236,7 @@ export class FileExplorerActions {
 				return;
 			}
 
-			// @ts-ignore // "this.app" is missing in typings
+			// @ts-ignore // incorrect constructor parameters typings in the "obsidian" package
 			newLeaf = new WorkspaceLeaf(this.app);
 			this.app.workspace.splitLeaf(recentLeaf, newLeaf, options.direction);
 		}
@@ -300,31 +311,35 @@ export class FileExplorerActions {
 	}
 
 	public async openFileInNewTab(focusedNode: FileExplorerFileNode) {
-		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
-			shouldFocus: false,
-		});
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(focusedNode.file, {
+				shouldFocus: false,
+			});
 
-		if (isFileAlreadyOpened) {
-			return;
+			if (isFileAlreadyOpened) {
+				return;
+			}
 		}
 
 		const newLeaf = this.app.workspace.getLeaf("tab");
 		await newLeaf.openFile(focusedNode.file);
-		// NOTE: this call is needed only for the case when the current editor tab is empty, for other cases `getLeaf` will focus new leaf.
+		// NOTE: calling `setActiveLeaf` is needed only for the case when current editor tab is empty, for other cases `getLeaf` is sufficient.
 		this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
 	}
 
 	/**
-	 * NOTE: this action uses a modified version of the `createLeafInTabGroup` function,
+	 * NOTE: this action uses a modified version of the `createLeafInTabGroup`(internal) function,
 	 * so it more likely to introduce bugs after Obsidian updates related logic.
 	 */
 	public async backgroundOpenFileInNewTab(focusedNode: FileExplorerFileNode) {
-		const isFileAlreadyOpened = this.tryToRevealLeafForFile(focusedNode.file, {
-			shouldFocus: false,
-		});
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(focusedNode.file, {
+				shouldFocus: false,
+			});
 
-		if (isFileAlreadyOpened) {
-			return;
+			if (isFileAlreadyOpened) {
+				return;
+			}
 		}
 
 		const recentLeaf = this.app.workspace.getMostRecentLeaf();
@@ -346,7 +361,7 @@ export class FileExplorerActions {
 		if (isRightmostTabEmpty) {
 			targetLeaf = recentLeaf;
 		} else {
-			// @ts-ignore // "this.app" is missing in typings
+			// @ts-ignore // incorrect constructor parameters typings in the "obsidian" package
 			targetLeaf = new WorkspaceLeaf(this.app);
 			tabs.insertChild(tabs.children.length, targetLeaf);
 		}
@@ -362,6 +377,13 @@ export class FileExplorerActions {
 		}
 	}
 
+	public clearSelectedNodes(): void {
+		this.fileExplorer.tree.clearSelectedDoms();
+	}
+
+	/**
+	 * Opens selected files (or focused file) in a new window.
+	 */
 	public async openFileInNewWindow(focusedNode: FileExplorerFileNode) {
 		const selectedFiles = Array.from(this.fileExplorer.tree.selectedDoms).filter((node) =>
 			isFileNode(node),
@@ -437,11 +459,11 @@ export class FileExplorerActions {
 		focusedNode.el.children[0].dispatchEvent(event);
 	}
 
-	private tryToRevealLeafForFile(file: TFile, options: { shouldFocus: boolean }): boolean {
-		if (!this.settings.enableDuplicateOpenedFilesFiltering) {
-			return false;
-		}
-
+	/**
+	 * Checks whether `file` is opened, reveals leaf(makes tab visible) and optionally focuses tab.
+	 * @returns {boolean} - Is file found and revealed.
+	 */
+	private tryToFindAndRevealFile(file: TFile, options: { shouldFocus: boolean }): boolean {
 		const leaf = this.findLeafByFile(file);
 
 		if (leaf == null) {
@@ -451,12 +473,12 @@ export class FileExplorerActions {
 		if (options.shouldFocus) {
 			this.app.workspace.setActiveLeaf(leaf);
 		} else if (leaf.parent instanceof WorkspaceTabs) {
-			const targetFileIdx = leaf.parent.children.findIndex((children) => children === leaf);
-			const currTabIdx = leaf.parent.currentTab;
-
 			leaf.parent.selectTab(leaf);
 
-			if (this.settings.enableBackgroundOpenVisualHelp && targetFileIdx === currTabIdx) {
+			const targetFileIdx = leaf.parent.children.findIndex((children) => children === leaf);
+			const isRevealingCurrentlyVisibleTab = leaf.parent.currentTab === targetFileIdx;
+
+			if (isRevealingCurrentlyVisibleTab && this.settings.enableBackgroundOpenVisualHelp) {
 				leaf.tabHeaderEl.addClass("sidebar-keyboard-nav-focused-tab");
 
 				setTimeout(() => {
@@ -478,9 +500,5 @@ export class FileExplorerActions {
 		}
 
 		return null;
-	}
-
-	public clearSelectedNodes(): void {
-		this.fileExplorer.tree.clearSelectedDoms();
 	}
 }

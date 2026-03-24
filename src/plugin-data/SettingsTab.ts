@@ -61,9 +61,9 @@ export class SettingsTab extends PluginSettingTab {
 
 		let backgroundOpeningHelpToggle: ToggleComponent;
 		const backgroundOpeningHelpSetting = new Setting(containerEl)
-			.setName("Show visual clue for background-opening")
+			.setName("Show visual clue for duplicates in background-opening")
 			.setDesc(
-				"When you try to background-open an already opened and visible file, there is no focus switch - so with this setting enabled, the target tab will be highlighted, so you don't get lost.",
+				"Trying to background-open an already opened and visible file will have no effect (focus switch), so it might feel like it doesn't work. Enabling this option will add quick highlighting for the corresponding tab.",
 			)
 			.addToggle((toggle) => {
 				backgroundOpeningHelpToggle = toggle;

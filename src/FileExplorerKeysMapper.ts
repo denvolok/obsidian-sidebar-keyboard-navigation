@@ -56,7 +56,7 @@ export class FileExplorerKeysMapper implements KeysMapper {
 				}
 				case "KeyS": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFocusedFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode, {
 							direction: "vertical",
 							shouldFocus: false,
 						});
@@ -65,7 +65,7 @@ export class FileExplorerKeysMapper implements KeysMapper {
 				}
 				case "KeyI": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFocusedFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode, {
 							direction: "horizontal",
 							shouldFocus: false,
 						});
@@ -184,7 +184,7 @@ export class FileExplorerKeysMapper implements KeysMapper {
 				}
 				case "KeyS": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFocusedFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode, {
 							direction: "vertical",
 							shouldFocus: true,
 						});
@@ -193,7 +193,7 @@ export class FileExplorerKeysMapper implements KeysMapper {
 				}
 				case "KeyI": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFocusedFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode, {
 							direction: "horizontal",
 							shouldFocus: true,
 						});
@@ -262,6 +262,9 @@ export class FileExplorerKeysMapper implements KeysMapper {
 		}
 	}
 
+	/**
+	 * Builds and shows/hides HTML <table> which displays key bindings cheatsheet.
+	 */
 	public toggleHelpModal(): void {
 		const modalNode = document.querySelector(".sidebar-keyboard-nav");
 
