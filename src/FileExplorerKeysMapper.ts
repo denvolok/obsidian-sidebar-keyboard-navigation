@@ -415,9 +415,9 @@ export class FileExplorerKeysMapper implements KeysMapper {
 const keysHelp = [
 	{ key: "?", action: "Toggle this help menu" },
 	{ key: "j", action: "Move down" },
-	{ key: "k", action: "Move up" },
 	{ key: "J", action: "Move down and preview file" },
-	{ key: "k", action: "Move up and preview file" },
+	{ key: "k", action: "Move up" },
+	{ key: "K", action: "Move up and preview file" },
 	{ key: "g", action: "Focus the topmost root node" },
 	{ key: "G", action: "Focus the bottommost root node" },
 	{ key: "v", action: "Toggle node selection" },
@@ -442,5 +442,5 @@ const keysHelp = [
 	{ key: "F", action: "Create folder in parent folder" },
 	{ key: "r", action: "Rename node" },
 	{ key: "c", action: "Clone node" },
-	{ key: "D", action: "Delete focused node, or selected nodes" },
+	{ key: "D", action: "Delete(Trash) focused node, or selected nodes" },
 ];
