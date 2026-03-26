@@ -239,9 +239,10 @@ export class FileExplorerActions {
 	}
 
 	public async cloneNode(focusedNode: FileExplorerNode): Promise<void> {
+		const isFile = isFileNode(focusedNode);
 		const destPath = this.app.vault.getAvailablePath(
-			removeExtensionFromPath(focusedNode.file.path),
-			isFileNode(focusedNode) ? focusedNode.file.extension : undefined,
+			isFile ? removeExtensionFromPath(focusedNode.file.path) : focusedNode.file.path,
+			isFile ? focusedNode.file.extension : undefined,
 		);
 		await this.app.vault.copy(focusedNode.file, destPath);
 	}

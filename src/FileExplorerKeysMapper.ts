@@ -329,8 +329,7 @@ export class FileExplorerKeysMapper implements KeysMapper {
 			elContainer.style = `left: ${left + 5}px; top: ${top + 5}px; width: ${width - 10}px; max-height: ${height - 10}px`;
 
 			const elTitle = document.createElement("div");
-			// eslint-disable-next-line obsidianmd/ui/sentence-case
-			elTitle.textContent = "Sidebar Keyboard Navigation - Help";
+			elTitle.textContent = "Sidebar keyboard navigation - help";
 			elTitle.classList.add("sidebar-keyboard-nav__title");
 
 			const elCloseHelp = document.createElement("div");
