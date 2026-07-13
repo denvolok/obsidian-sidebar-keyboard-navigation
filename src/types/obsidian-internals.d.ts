@@ -102,6 +102,12 @@ declare module "obsidian" {
 		onFileMouseover(event: MouseEvent, element: Element): void;
 	}
 
+	interface SearchView extends View {
+		searchComponent: {
+			inputEl: HTMLInputElement;
+		};
+	}
+
 	// type ViewType =
 	// 	| "markdown"
 	// 	| "file-explorer"

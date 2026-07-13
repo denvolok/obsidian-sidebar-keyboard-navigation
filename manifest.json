@@ -4,6 +4,6 @@
 	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "Smoothly navigate the native File Explorer using keyboard only (Vim-like).",
-	"author": "Denis Volok <denis.volok@pm.me>",
+	"author": "Denis Volok",
 	"isDesktopOnly": true
 }

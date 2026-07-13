@@ -196,6 +196,15 @@ export class FileExplorerKeysMapper implements KeysMapper {
 			}
 		} else {
 			switch (event.code) {
+				case "Slash": {
+					if (focusedNode == null || isFileNode(focusedNode)) {
+						return;
+					}
+
+					event.preventDefault(); // Prevents replacing search query with "event.code`
+					await this.actions.searchInFolder(focusedNode);
+					break;
+				}
 				case "Semicolon": {
 					if (focusedNode == null) {
 						return;
@@ -442,4 +451,5 @@ const keysHelp = [
 	{ key: "r", action: "Rename node" },
 	{ key: "c", action: "Clone node" },
 	{ key: "D", action: "Delete(Trash) focused node, or selected nodes" },
+	{ key: "/", action: "Search in focused folder" },
 ];

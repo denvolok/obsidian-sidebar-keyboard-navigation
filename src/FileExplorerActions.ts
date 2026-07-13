@@ -11,7 +11,7 @@ import {
 	WorkspaceTabs,
 } from "obsidian";
 import { domUtils, removeExtensionFromPath } from "./utils/utils";
-import { isFileNode, ViewType } from "./types";
+import { isFileNode, isSearchView, ViewType } from "./types";
 import {
 	FileExplorerFileNode,
 	FileExplorerFolderNode,
@@ -474,5 +474,30 @@ export class FileExplorerActions {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Opens global search toolbar and sets search path to the currently focused folder.
+	 *
+	 * Changes to the native behavior: clear text selection in the search input so user
+	 * can start typing the search term immediately.
+	 */
+	public async searchInFolder(focusedNode: FileExplorerNode) {
+		await this.app.workspace.ensureSideLeaf("search", "left", {
+			active: true,
+			reveal: true,
+			state: {
+				query: `path:"${focusedNode.file.path}/" `,
+			},
+		});
+
+		setTimeout(() => {
+			const activeView = this.app.workspace.getActiveViewOfType(View);
+
+			if (activeView != null && isSearchView(activeView)) {
+				const searchInput = activeView.searchComponent.inputEl;
+				searchInput.selectionStart = searchInput.selectionEnd;
+			}
+		}, 10);
 	}
 }
