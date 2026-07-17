@@ -2,8 +2,10 @@ import { SettingsTab } from "./plugin-data/SettingsTab";
 import { View, WorkspaceLeaf } from "obsidian";
 import { PluginData } from "./plugin-data/PluginData";
 import { mapCharacterToKeystroke } from "./utils/utils";
-import { FileExplorerKeysMapper } from "./FileExplorerKeysMapper";
-import { KeysMapper, ViewType } from "types";
+import { FileExplorerKeysMapper } from "./views/file-explorer/FileExplorerKeysMapper";
+import { KeysMapper } from "./KeysMapper";
+import { ViewType } from "./types";
+import { SearchKeysMapper } from "./views/search/SearchKeysMapper";
 
 export default class SidebarKeyboardNav extends PluginData {
 	private keysMappers: Record<string, KeysMapper>;
@@ -13,6 +15,7 @@ export default class SidebarKeyboardNav extends PluginData {
 
 		this.keysMappers = {
 			[ViewType.FileExplorer]: new FileExplorerKeysMapper(this.app, this.data.settings),
+			[ViewType.Search]: new SearchKeysMapper(this.app, this.data.settings),
 		};
 
 		this.addSettingTab(new SettingsTab(this));
@@ -25,8 +28,7 @@ export default class SidebarKeyboardNav extends PluginData {
 	}
 
 	/**
-	 * Dynamically attach "keydown" event only when a supported View is focused.
-	 * This approach should provide better isolation, comparing to `registerDomEvent("keydown")`.
+	 * Conditionally attaches/detaches "keydown" handler when a supported View is getting focused.
 	 */
 	private handleLeafChange = (leaf: WorkspaceLeaf | null): void => {
 		if (leaf == null) {
@@ -64,6 +66,8 @@ export default class SidebarKeyboardNav extends PluginData {
 	};
 
 	/**
+	 * Checks special cases for when we should not handle keystrokes.
+	 *
 	 * NOTE: the order of checks is important as we want to minimize the impact on performance,
 	 * so the most generic and performant checks should come first.
 	 */
@@ -98,6 +102,9 @@ export default class SidebarKeyboardNav extends PluginData {
 		return !isKeyDisabledInSettings;
 	}
 
+	/**
+	 * Duplicates minimal code from `toggleHelpModal` to avoid code coupling.
+	 */
 	private hideHelpModal(): void {
 		const node = document.querySelector(".sidebar-keyboard-nav");
 

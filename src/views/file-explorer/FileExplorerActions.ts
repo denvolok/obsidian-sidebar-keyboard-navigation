@@ -10,62 +10,31 @@ import {
 	WorkspaceLeaf,
 	WorkspaceTabs,
 } from "obsidian";
-import { domUtils, removeExtensionFromPath } from "./utils/utils";
-import { isFileNode, isSearchView, ViewType } from "./types";
+import { domUtils, removeExtensionFromPath } from "../../utils/utils";
+import { isFileNode, isSearchView, ViewType } from "../../types";
 import {
 	FileExplorerFileNode,
 	FileExplorerFolderNode,
 	FileExplorerNode,
-} from "./types/obsidian-internals";
-import { PluginSettings } from "./plugin-data/PluginData";
+} from "../../types/obsidian-internals";
+import { PluginSettings } from "../../plugin-data/PluginData";
+import { CommonActions } from "../../CommonActions";
 
-/**
- * Actions available in File Explorer.
- *
- * public functions - actions, private - utils.
- * For the sake of simplicity, all actions are grouped in a single class
- * (to avoid the burden of dependency/relation management). Should not be a
- * problem if functions kept simple and minimal.
- */
-export class FileExplorerActions {
+export class FileExplorerActions extends CommonActions {
 	constructor(
-		private settings: PluginSettings,
 		private app: App,
-	) {}
+		settings: PluginSettings,
+	) {
+		super(settings);
+	}
 
-	private get fileExplorer(): FileExplorerView {
+	protected get view(): FileExplorerView {
 		return this.app.workspace.getActiveViewOfType(View) as FileExplorerView;
 	}
 
 	public collapseAllFolders(): void {
-		this.fileExplorer.tree.isAllCollapsed = false;
-		this.fileExplorer.tree.setCollapseAll(true);
-	}
-
-	public toggleContextMenu(focusedNode: FileExplorerNode): void {
-		if (domUtils.isContextMenuOpened()) {
-			const hideEvent = new KeyboardEvent("keydown", {
-				key: "Escape",
-				bubbles: true,
-				cancelable: true,
-			});
-			document.dispatchEvent(hideEvent);
-		} else {
-			const focusedNodeTitle = focusedNode.el.querySelector(".nav-folder-title, .nav-file-title");
-			if (focusedNodeTitle == null) {
-				return;
-			}
-
-			const contextmenuEvent = new MouseEvent("contextmenu", {
-				bubbles: true,
-				cancelable: true,
-				view: window,
-				clientX: focusedNodeTitle.getBoundingClientRect().left,
-				clientY: focusedNodeTitle.getBoundingClientRect().top,
-			});
-
-			focusedNodeTitle.dispatchEvent(contextmenuEvent);
-		}
+		this.view.tree.isAllCollapsed = false;
+		this.view.tree.setCollapseAll(true);
 	}
 
 	public moveFocusDown(_event: KeyboardEvent): void {
@@ -80,7 +49,7 @@ export class FileExplorerActions {
 			});
 		}
 
-		this.fileExplorer.tree.onKeyArrowDown(event);
+		this.view.tree.onKeyArrowDown(event);
 	}
 
 	public moveFocusUp(_event: KeyboardEvent): void {
@@ -95,15 +64,15 @@ export class FileExplorerActions {
 			});
 		}
 
-		this.fileExplorer.tree.onKeyArrowUp(event);
+		this.view.tree.onKeyArrowUp(event);
 	}
 
 	public collapseCurrentFolder(event: KeyboardEvent): void {
-		this.fileExplorer.tree.onKeyArrowLeft(event);
+		this.view.tree.onKeyArrowLeft(event);
 	}
 
 	public expandFolder(event: KeyboardEvent): void {
-		this.fileExplorer.tree.onKeyArrowRight(event);
+		this.view.tree.onKeyArrowRight(event);
 	}
 
 	public deleteNodeAndFocusNext(focusedNode: FileExplorerNode): void {
@@ -147,7 +116,7 @@ export class FileExplorerActions {
 					return;
 				}
 
-				this.fileExplorer.tree.setFocusedItem(nextNodeToFocus);
+				this.view.tree.setFocusedItem(nextNodeToFocus);
 			}, 70);
 		}
 	}
@@ -171,7 +140,7 @@ export class FileExplorerActions {
 		}
 
 		if (options.shouldFocus) {
-			this.fileExplorer.tree.onKeyArrowRight(event);
+			this.view.tree.onKeyArrowRight(event);
 			return;
 		} else {
 			const recentLeaf = this.app.workspace.getMostRecentLeaf();
@@ -234,7 +203,7 @@ export class FileExplorerActions {
 		}
 
 		if (folder != null) {
-			this.fileExplorer.createAbstractFile(nodeType, folder, false);
+			this.view.createAbstractFile(nodeType, folder, false);
 		}
 	}
 
@@ -248,17 +217,17 @@ export class FileExplorerActions {
 	}
 
 	public focusParentNode(focusedNode: FileExplorerNode): void {
-		this.fileExplorer.tree.setFocusedItem(focusedNode.parent);
+		this.view.tree.setFocusedItem(focusedNode.parent);
 	}
 
 	public focusFirstRootNode(): void {
-		const firstRootNode = this.fileExplorer.tree.root.vChildren.children[0];
-		this.fileExplorer.tree.setFocusedItem(firstRootNode);
+		const firstRootNode = this.view.tree.root.vChildren.children[0];
+		this.view.tree.setFocusedItem(firstRootNode);
 	}
 
 	public focusLastRootNode(): void {
-		const lastRootNode = this.fileExplorer.tree.root.vChildren.children.slice(-1)[0];
-		this.fileExplorer.tree.setFocusedItem(lastRootNode);
+		const lastRootNode = this.view.tree.root.vChildren.children.slice(-1)[0];
+		this.view.tree.setFocusedItem(lastRootNode);
 	}
 
 	public recursivelySetFolderCollapsed(
@@ -281,7 +250,7 @@ export class FileExplorerActions {
 	}
 
 	public renameNode(event: KeyboardEvent): void {
-		this.fileExplorer.onKeyRename(event);
+		this.view.onKeyRename(event);
 	}
 
 	public async openFileInNewTab(focusedNode: FileExplorerFileNode) {
@@ -344,22 +313,22 @@ export class FileExplorerActions {
 	}
 
 	public toggleNodeSelection(focusedNode: FileExplorerNode) {
-		if (this.fileExplorer.tree.selectedDoms.has(focusedNode)) {
-			this.fileExplorer.tree.deselectItem(focusedNode);
+		if (this.view.tree.selectedDoms.has(focusedNode)) {
+			this.view.tree.deselectItem(focusedNode);
 		} else {
-			this.fileExplorer.tree.selectItem(focusedNode);
+			this.view.tree.selectItem(focusedNode);
 		}
 	}
 
 	public clearSelectedNodes(): void {
-		this.fileExplorer.tree.clearSelectedDoms();
+		this.view.tree.clearSelectedDoms();
 	}
 
 	/**
 	 * Opens selected files (or focused file) in a new window.
 	 */
 	public async openFileInNewWindow(focusedNode: FileExplorerFileNode) {
-		const selectedFiles = Array.from(this.fileExplorer.tree.selectedDoms).filter((node) =>
+		const selectedFiles = Array.from(this.view.tree.selectedDoms).filter((node) =>
 			isFileNode(node),
 		);
 		const newLeaf = this.app.workspace.getLeaf("window");
@@ -406,7 +375,7 @@ export class FileExplorerActions {
 			this.hidePreviewPopup(focusedNode);
 		} else if (focusedNode.el.children[0] != null) {
 			await this.app.internalPlugins.plugins["page-preview"].instance.onLinkHover(
-				this.fileExplorer,
+				this.view,
 				focusedNode.el.children[0],
 				focusedNode.file.path,
 				"",

@@ -26,6 +26,12 @@ export interface FileExplorerFolderNode extends FileExplorerNodeBase {
 
 export type FileExplorerNode = FileExplorerFileNode | FileExplorerFolderNode;
 
+export interface SearchNode {
+	el: HTMLElement;
+	// Provided for parent(grouping) nodes and refers to the group header (file name)
+	selfEl?: HTMLElement;
+}
+
 /**
  * Undocumented typings for Obsidian.
  */
@@ -105,6 +111,12 @@ declare module "obsidian" {
 	interface SearchView extends View {
 		searchComponent: {
 			inputEl: HTMLInputElement;
+		};
+
+		dom: {
+			// Search results container
+			el: HTMLElement;
+			focusedItem?: SearchNode;
 		};
 	}
 
