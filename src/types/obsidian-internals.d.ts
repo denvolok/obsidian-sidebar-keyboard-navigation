@@ -26,11 +26,20 @@ export interface FileExplorerFolderNode extends FileExplorerNodeBase {
 
 export type FileExplorerNode = FileExplorerFileNode | FileExplorerFolderNode;
 
-export interface SearchNode {
+export interface SearchNodeBase {
 	el: HTMLElement;
-	// Provided for parent(grouping) nodes and refers to the group header (file name)
-	selfEl?: HTMLElement;
 }
+
+export interface SearchFileNode extends SearchNodeBase {
+	selfEl: HTMLElement;
+	file: TFile;
+}
+
+export interface SearchMatchNode extends SearchNodeBase {
+	parent: SearchFileNode;
+}
+
+export type SearchNode = SearchMatchNode | SearchFileNode;
 
 /**
  * Undocumented typings for Obsidian.
@@ -113,10 +122,19 @@ declare module "obsidian" {
 			inputEl: HTMLInputElement;
 		};
 
+		collapseResultsToggle: {
+			onClick(): void;
+		};
 		dom: {
 			// Search results container
 			el: HTMLElement;
 			focusedItem?: SearchNode;
+			setFocusedItem(item: SearchNode): void;
+			vChildren: {
+				children: SearchNode[];
+				first(): SearchNode;
+				last(): SearchNode;
+			};
 		};
 	}
 

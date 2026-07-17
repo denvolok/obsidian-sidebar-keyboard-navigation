@@ -2,9 +2,9 @@ import { FileExplorerActions } from "./FileExplorerActions";
 import { PluginSettings } from "../../plugin-data/PluginData";
 import { App, FileExplorerView, View } from "obsidian";
 
-import { isFileNode } from "../../types";
 import { domUtils } from "../../utils/utils";
 import { KeysMapper } from "../../KeysMapper";
+import { isFileNode } from "./file-explorer-utils";
 
 const keysHelp = [
 	{ key: "?", action: "Toggle this help menu" },
@@ -66,40 +66,24 @@ export class FileExplorerKeysMapper extends KeysMapper {
 
 						this.actions.toggleContextMenu();
 						break;
-					case "KeyL": {
-						const event = new KeyboardEvent("keydown", {
-							key: "ArrowRight",
-							bubbles: true,
-							cancelable: true,
-						});
-						document.dispatchEvent(event);
-						break;
-					}
-					case "KeyH": {
-						const event = new KeyboardEvent("keydown", {
-							key: "ArrowLeft",
-							bubbles: true,
-							cancelable: true,
-						});
-						document.dispatchEvent(event);
-						break;
-					}
-					case "KeyJ": {
-						const event = new KeyboardEvent("keydown", {
-							key: "ArrowDown",
-							bubbles: true,
-							cancelable: true,
-						});
-						document.dispatchEvent(event);
-						break;
-					}
+					case "KeyL":
+					case "KeyH":
+					case "KeyJ":
 					case "KeyK": {
-						const event = new KeyboardEvent("keydown", {
-							key: "ArrowUp",
+						const key =
+							event.code === "KeyL"
+								? "ArrowRight"
+								: event.code === "KeyH"
+									? "ArrowLeft"
+									: event.code === "KeyJ"
+										? "ArrowDown"
+										: "ArrowUp";
+						const ev = new KeyboardEvent("keydown", {
+							key,
 							bubbles: true,
 							cancelable: true,
 						});
-						document.dispatchEvent(event);
+						document.dispatchEvent(ev);
 						break;
 					}
 					default:
@@ -138,7 +122,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyS": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode.file, {
 							direction: "vertical",
 							shouldFocus: false,
 						});
@@ -147,7 +131,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyI": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode.file, {
 							direction: "horizontal",
 							shouldFocus: false,
 						});
@@ -160,7 +144,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 					}
 
 					if (isFileNode(focusedNode)) {
-						await this.actions.openFile(focusedNode, event, {
+						await this.actions.openFile(focusedNode.file, focusedNode.el, {
 							shouldFocus: false,
 							shouldPreventDuplicate: true,
 						});
@@ -187,7 +171,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyT": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.backgroundOpenFileInNewTab(focusedNode);
+						await this.actions.backgroundOpenFileInNewTab(focusedNode.file);
 					}
 					break;
 				}
@@ -198,7 +182,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 						.tree.focusedItem;
 
 					if (newFocusedNode != null && isFileNode(newFocusedNode)) {
-						await this.actions.openFile(newFocusedNode, event, {
+						await this.actions.openFile(newFocusedNode.file, newFocusedNode.el, {
 							shouldFocus: false,
 							shouldPreventDuplicate: false,
 						});
@@ -212,7 +196,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 						.tree.focusedItem;
 
 					if (newFocusedNode != null && isFileNode(newFocusedNode)) {
-						await this.actions.openFile(newFocusedNode, event, {
+						await this.actions.openFile(newFocusedNode.file, newFocusedNode.el, {
 							shouldFocus: false,
 							shouldPreventDuplicate: false,
 						});
@@ -267,7 +251,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 					}
 
 					if (isFileNode(focusedNode)) {
-						await this.actions.openFile(focusedNode, event, {
+						await this.actions.openFile(focusedNode.file, focusedNode.el, {
 							shouldFocus: true,
 							shouldPreventDuplicate: true,
 						});
@@ -278,7 +262,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyS": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode.file, {
 							direction: "vertical",
 							shouldFocus: true,
 						});
@@ -287,7 +271,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyI": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFileInNewSplit(focusedNode, {
+						await this.actions.openFileInNewSplit(focusedNode.file, {
 							direction: "horizontal",
 							shouldFocus: true,
 						});
@@ -328,7 +312,7 @@ export class FileExplorerKeysMapper extends KeysMapper {
 				}
 				case "KeyT": {
 					if (focusedNode != null && isFileNode(focusedNode)) {
-						await this.actions.openFileInNewTab(focusedNode);
+						await this.actions.openFileInNewTab(focusedNode.file);
 					}
 					break;
 				}
@@ -356,4 +340,3 @@ export class FileExplorerKeysMapper extends KeysMapper {
 		}
 	}
 }
-

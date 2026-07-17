@@ -1,11 +1,23 @@
-import { View } from "obsidian";
+import {
+	App,
+	FileView,
+	MarkdownView,
+	SplitDirection,
+	TFile,
+	View,
+	WorkspaceLeaf,
+	WorkspaceTabs,
+} from "obsidian";
 import { domUtils } from "./utils/utils";
 import { PluginSettings } from "./plugin-data/PluginData";
 
 export abstract class CommonActions {
 	protected abstract get view(): View;
 
-	protected constructor(protected settings: PluginSettings) {}
+	constructor(
+		protected app: App,
+		protected settings: PluginSettings,
+	) {}
 
 	/**
 	 * Builds and shows/hides HTML <table> which displays key bindings cheatsheet.
@@ -127,5 +139,177 @@ export abstract class CommonActions {
 
 			targetEl.dispatchEvent(contextmenuEvent);
 		}
+	}
+
+	public async openFile(
+		file: TFile,
+		el: HTMLElement,
+		options: {
+			shouldFocus: boolean;
+			shouldPreventDuplicate: boolean;
+		},
+	): Promise<void> {
+		if (options.shouldPreventDuplicate && this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(file, {
+				shouldFocus: options.shouldFocus,
+			});
+
+			if (isFileAlreadyOpened) {
+				return;
+			}
+		}
+
+		if (options.shouldFocus) {
+			const event = new KeyboardEvent("keydown", {
+				key: "Enter",
+				bubbles: true,
+				cancelable: true,
+			});
+			el.dispatchEvent(event);
+			return;
+		} else {
+			const recentLeaf = this.app.workspace.getMostRecentLeaf();
+			if (recentLeaf != null) {
+				await recentLeaf.openFile(file);
+			}
+		}
+	}
+
+	public async openFileInNewTab(file: TFile) {
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(file, {
+				shouldFocus: false,
+			});
+
+			if (isFileAlreadyOpened) {
+				return;
+			}
+		}
+
+		const newLeaf = this.app.workspace.getLeaf("tab");
+		await newLeaf.openFile(file);
+		// NOTE: calling `setActiveLeaf` is needed only for the case when current editor tab is empty, for other cases `getLeaf` is sufficient.
+		this.app.workspace.setActiveLeaf(newLeaf, { focus: true });
+	}
+
+	/**
+	 * NOTE: this action uses a modified version of the `createLeafInTabGroup`(internal) function,
+	 * so it more likely to introduce bugs after Obsidian updates related logic.
+	 */
+	public async backgroundOpenFileInNewTab(file: TFile) {
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(file, {
+				shouldFocus: false,
+			});
+
+			if (isFileAlreadyOpened) {
+				return;
+			}
+		}
+
+		const recentLeaf = this.app.workspace.getMostRecentLeaf();
+		if (recentLeaf == null) {
+			throw new Error("No tab group found");
+		}
+		const tabs = recentLeaf.parent;
+		if (!(tabs instanceof WorkspaceTabs)) {
+			return;
+		}
+		const rightmostTab = tabs.children.last();
+		if (rightmostTab == null) {
+			return;
+		}
+
+		const isRightmostTabEmpty = !(rightmostTab.view instanceof FileView);
+		let targetLeaf: WorkspaceLeaf;
+
+		if (isRightmostTabEmpty) {
+			targetLeaf = recentLeaf;
+		} else {
+			// @ts-ignore // incorrect constructor parameters typings in the "obsidian" package
+			targetLeaf = new WorkspaceLeaf(this.app);
+			tabs.insertChild(tabs.children.length, targetLeaf);
+		}
+
+		await targetLeaf.openFile(file);
+	}
+
+	public async openFileInNewSplit(
+		file: TFile,
+		options: {
+			direction: SplitDirection;
+			shouldFocus: boolean;
+		},
+	): Promise<void> {
+		if (this.settings.enableDuplicateOpenedFilesFiltering) {
+			const isFileAlreadyOpened = this.tryToFindAndRevealFile(file, {
+				shouldFocus: options.shouldFocus,
+			});
+
+			if (isFileAlreadyOpened) {
+				return;
+			}
+		}
+
+		let newLeaf: WorkspaceLeaf;
+
+		if (options.shouldFocus) {
+			newLeaf = this.app.workspace.getLeaf("split", options.direction);
+		} else {
+			const recentLeaf = this.app.workspace.getMostRecentLeaf();
+
+			if (recentLeaf == null) {
+				return;
+			}
+
+			// @ts-ignore // incorrect constructor parameters typings in the "obsidian" package
+			newLeaf = new WorkspaceLeaf(this.app);
+			this.app.workspace.splitLeaf(recentLeaf, newLeaf, options.direction);
+		}
+
+		await newLeaf.openFile(file);
+	}
+
+	/**
+	 * Checks whether `file` is opened, reveals leaf(makes tab visible) and optionally focuses tab.
+	 * @returns {boolean} - Is file found and revealed.
+	 */
+	private tryToFindAndRevealFile(file: TFile, options: { shouldFocus: boolean }): boolean {
+		const leaf = this.findLeafByFile(file);
+
+		if (leaf == null) {
+			return false;
+		}
+
+		if (options.shouldFocus) {
+			this.app.workspace.setActiveLeaf(leaf);
+		} else if (leaf.parent instanceof WorkspaceTabs) {
+			leaf.parent.selectTab(leaf);
+
+			const targetFileIdx = leaf.parent.children.findIndex((children) => children === leaf);
+			const isRevealingCurrentlyVisibleTab = leaf.parent.currentTab === targetFileIdx;
+
+			if (isRevealingCurrentlyVisibleTab && this.settings.enableBackgroundOpenVisualHelp) {
+				leaf.tabHeaderEl.addClass("sidebar-keyboard-nav-focused-tab");
+
+				setTimeout(() => {
+					leaf.tabHeaderEl.removeClass("sidebar-keyboard-nav-focused-tab");
+				}, 300);
+			}
+		}
+
+		return true;
+	}
+
+	private findLeafByFile(file: TFile): WorkspaceLeaf | null {
+		const leaves = this.app.workspace.getLeavesOfType("markdown");
+
+		for (const leaf of leaves) {
+			if (leaf.view instanceof MarkdownView && leaf.view.file === file) {
+				return leaf;
+			}
+		}
+
+		return null;
 	}
 }
