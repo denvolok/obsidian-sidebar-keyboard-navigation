@@ -147,6 +147,7 @@ export abstract class CommonActions {
 		options: {
 			shouldFocus: boolean;
 			shouldPreventDuplicate: boolean;
+			eState?: Record<string, unknown>; // ephemeralState
 		},
 	): Promise<void> {
 		if (options.shouldPreventDuplicate && this.settings.enableDuplicateOpenedFilesFiltering) {
@@ -170,7 +171,7 @@ export abstract class CommonActions {
 		} else {
 			const recentLeaf = this.app.workspace.getMostRecentLeaf();
 			if (recentLeaf != null) {
-				await recentLeaf.openFile(file);
+				await recentLeaf.openFile(file, { eState: options.eState });
 			}
 		}
 	}

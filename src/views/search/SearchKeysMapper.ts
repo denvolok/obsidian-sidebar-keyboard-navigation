@@ -8,7 +8,9 @@ import { isFileNode } from "./search-utils";
 const keysHelp = [
 	{ key: "?", action: "Toggle this help menu" },
 	{ key: "j", action: "Move down" },
+	{ key: "J", action: "Move down and preview search match" },
 	{ key: "k", action: "Move up" },
+	{ key: "K", action: "Move up and preview search match" },
 	{ key: "g", action: "Focus the topmost root node" },
 	{ key: "G", action: "Focus the bottommost root node" },
 	{ key: ";", action: "Toggle context menu" },
@@ -97,7 +99,13 @@ export class SearchKeysMapper extends KeysMapper {
 					} else {
 						await this.actions.openFile(focusedNode.parent.file, focusedNode.el, {
 							shouldFocus: false,
-							shouldPreventDuplicate: true,
+							shouldPreventDuplicate: false,
+							eState: {
+								match: {
+									content: focusedNode.content,
+									matches: focusedNode.matches,
+								},
+							},
 						});
 					}
 					break;
@@ -133,6 +141,27 @@ export class SearchKeysMapper extends KeysMapper {
 
 					const file = isFileNode(focusedNode) ? focusedNode.file : focusedNode.parent.file;
 					await this.actions.backgroundOpenFileInNewTab(file);
+					break;
+				}
+				case "KeyJ":
+				case "KeyK": {
+					const direction = event.code === "KeyJ" ? "down" : "up";
+					this.actions.moveFocus(direction);
+
+					const newFocusedNode = this.view.dom.focusedItem;
+
+					if (newFocusedNode != null && !isFileNode(newFocusedNode)) {
+						await this.actions.openFile(newFocusedNode.parent.file, newFocusedNode.el, {
+							shouldFocus: false,
+							shouldPreventDuplicate: false,
+							eState: {
+								match: {
+									content: newFocusedNode.content,
+									matches: newFocusedNode.matches,
+								},
+							},
+						});
+					}
 					break;
 				}
 				default:

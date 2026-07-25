@@ -37,6 +37,8 @@ export interface SearchFileNode extends SearchNodeBase {
 
 export interface SearchMatchNode extends SearchNodeBase {
 	parent: SearchFileNode;
+	content: string;
+	matches: unknown[];
 }
 
 export type SearchNode = SearchMatchNode | SearchFileNode;
