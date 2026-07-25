@@ -1,4 +1,11 @@
-import { FileExplorerView, TFolder, View, WorkspaceLeaf, WorkspaceTabs } from "obsidian";
+import {
+	FileExplorerView,
+	requireApiVersion,
+	TFolder,
+	View,
+	WorkspaceLeaf,
+	WorkspaceTabs,
+} from "obsidian";
 import { domUtils, removeExtensionFromPath } from "../../utils/utils";
 import { isSearchView, ViewType } from "../../types";
 import {
@@ -8,6 +15,7 @@ import {
 } from "../../types/obsidian-internals";
 import { CommonActions } from "../../CommonActions";
 import { isFileNode } from "./file-explorer-utils";
+import { Logger } from "utils/logger";
 
 export class FileExplorerActions extends CommonActions {
 	protected get view(): FileExplorerView {
@@ -89,7 +97,7 @@ export class FileExplorerActions extends CommonActions {
 
 		if (nextNodeToFocus != null) {
 			// NOTE: trying to reduce border flickering by delaying its rendering.
-			setTimeout(() => {
+			window.setTimeout(() => {
 				const isFileExplorerFocused =
 					this.app.workspace.getActiveViewOfType(View)?.getViewType() === ViewType.FileExplorer;
 
@@ -125,12 +133,17 @@ export class FileExplorerActions extends CommonActions {
 	}
 
 	public async cloneNode(focusedNode: FileExplorerNode): Promise<void> {
-		const isFile = isFileNode(focusedNode);
-		const destPath = this.app.vault.getAvailablePath(
-			isFile ? removeExtensionFromPath(focusedNode.file.path) : focusedNode.file.path,
-			isFile ? focusedNode.file.extension : undefined,
-		);
-		await this.app.vault.copy(focusedNode.file, destPath);
+		if (requireApiVersion("1.8.7")) {
+			const isFile = isFileNode(focusedNode);
+			const destPath = this.app.vault.getAvailablePath(
+				isFile ? removeExtensionFromPath(focusedNode.file.path) : focusedNode.file.path,
+				isFile ? focusedNode.file.extension : undefined,
+			);
+
+			await this.app.vault.copy(focusedNode.file, destPath);
+		} else {
+			Logger.warn(" failed copy. Min app version required: 1.8.7");
+		}
 	}
 
 	public focusParentNode(focusedNode: FileExplorerNode): void {
@@ -267,21 +280,25 @@ export class FileExplorerActions extends CommonActions {
 	 * can start typing the search term immediately.
 	 */
 	public async searchInFolder(focusedNode: FileExplorerNode) {
-		await this.app.workspace.ensureSideLeaf("search", "left", {
-			active: true,
-			reveal: true,
-			state: {
-				query: `path:"${focusedNode.file.path}/" `,
-			},
-		});
+		if (requireApiVersion("1.7.2")) {
+			await this.app.workspace.ensureSideLeaf("search", "left", {
+				active: true,
+				reveal: true,
+				state: {
+					query: `path:"${focusedNode.file.path}/" `,
+				},
+			});
 
-		setTimeout(() => {
-			const activeView = this.app.workspace.getActiveViewOfType(View);
+			window.setTimeout(() => {
+				const activeView = this.app.workspace.getActiveViewOfType(View);
 
-			if (activeView != null && isSearchView(activeView)) {
-				const searchInput = activeView.searchComponent.inputEl;
-				searchInput.selectionStart = searchInput.selectionEnd;
-			}
-		}, 10);
+				if (activeView != null && isSearchView(activeView)) {
+					const searchInput = activeView.searchComponent.inputEl;
+					searchInput.selectionStart = searchInput.selectionEnd;
+				}
+			}, 10);
+		} else {
+			Logger.warn(" failed search in folder. Min app version required: 1.7.2");
+		}
 	}
 }

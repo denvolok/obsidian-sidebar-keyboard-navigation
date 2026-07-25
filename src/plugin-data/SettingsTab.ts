@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, ToggleComponent } from "obsidian";
+import { PluginSettingTab, requireApiVersion, Setting, ToggleComponent } from "obsidian";
 import SidebarKeyboardNav from "../main";
 
 export class SettingsTab extends PluginSettingTab {
@@ -49,7 +49,10 @@ export class SettingsTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						settings.enableDuplicateOpenedFilesFiltering = value;
 
-						backgroundOpeningHelpSetting.setDisabled(!value);
+						if (requireApiVersion("1.2.3")) {
+							backgroundOpeningHelpSetting.setDisabled(!value);
+						}
+
 						if (!value) {
 							backgroundOpeningHelpToggle.setValue(false);
 							settings.enableBackgroundOpenVisualHelp = false;

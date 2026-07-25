@@ -60,12 +60,12 @@
 	padding-left: 15px;
 }
 
-.sidebar-keyboard-nav-focused-tab {
-	background-color: var(--text-faint) !important;
-	transition: background-color .2s;
+.workspace-tab-header-container
+	.workspace-tab-header.is-active.sidebar-keyboard-nav-focused-tab {
+	background-color: var(--text-faint);
+	transition: background-color 0.2s;
 }
 
 .sidebar-keyboard-nav-disabled-settings-td {
 	font-style: italic;
-	font-weight: 400 !important;
 }

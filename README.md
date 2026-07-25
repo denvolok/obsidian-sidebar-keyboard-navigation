@@ -2,11 +2,10 @@
 
 [Obsidian](https://obsidian.md/) plugin to enable keyboard based workflow(*Vim-like*) in
 the native [File Explorer](https://help.obsidian.md/plugins/file-explorer).
-Inspired by popular Vim plugins like NERDTree and Neo-tree.
 
-For Vim users, Obsidian currently allows using Vim-mode in the Editor (enabled in Settings), but not in other tools
+For Vim users, Obsidian currently supports using Vim-mode in the Editor (enabled in Settings), but not in other tool
 windows, like File Explorer.<br>
-So the goal of this plugin is to fill this gap for users who heavily rely on a keyboard-based workflow.
+The goal of this plugin is to fill this gap for users who rely on a keyboard-based workflow.
 
 ## Features
 
@@ -45,11 +44,9 @@ So the goal of this plugin is to fill this gap for users who heavily rely on a k
 
 ## Installation
 
-### Install via BRAT
+### Install Latest Git Version via BRAT
 
-The plugin currently is going through the review process, so it's not available in the community plugins repository
-yet.<br>
-For now, you can use the [BRAT](https://tfthacker.com/BRAT) community plugin for installation and updating.
+Refer to the [BRAT](https://tfthacker.com/brat-quick-guide) documentation for detailed instructions.
 
 ### Manual Installation
 
@@ -74,20 +71,33 @@ For now, you can use the [BRAT](https://tfthacker.com/BRAT) community plugin for
 	- For new users it's suggested to start with the most basic commands - `j`/`k`/`h`/`k`/`n`/`f`, and introduce more
 		advanced actions gradually.
 
-If, after some operation (e.g. after deleting a note via default mapping - `Ctrl-Shift-D`), you see that no nodes
-focused(focus lost) - just press `j` or `k` to get focus back.
+> If, after some operation (e.g. after deleting a note via default mapping - `Ctrl-Shift-D`), you see that no nodes
+> focused(focus lost) - just press `j` or `k` to get focus back.
+
+### Search Toolbar
+
+When you open the Search toolbar, the keyboard focus initially placed on the input element.
+After you entered the search term, you can unfocus the search input by pressing `Tab`, and then start navigating by
+moving focus to the first entry (`j`).
+
+After you open a file from the search results (by pressing `l` or `Enter`), you can quickly move focus back to the same
+position in the search results by pressing `Shift + Tab`.
+It's the native app's behavior and will work only if you have a single editor opened (no splits).
 
 ## Available Actions
 
-> **NOTES:**
+> [!NOTE]
 > - All key bindings currently limited to use only a single key press, and `Ctrl`/`Alt` modifiers are not used, as these
-		> likely to interfere with the native bindings.
-> - **Node** - an entry in sidebar tool windows (file or folder for File Explorer)
-> - **Focused node** - a node with the cursor positioned on it(usually bordered)
+		> are likely to interfere with the native key bindings.
+> - **Node** - an entry in a sidebar toolbar (file or folder for File Explorer)
+> - **Focused node** - a node with the cursor(focus) positioned on it
 > - **Selected node** - a node selected via selection
-> - **File** - any file type visible in the File Explorer (e.g. `.md`, `.pdf`)
-> - **Note** - a `.md` File
 > - **Background-opening** - opening a file without switching focus to the Editor
+> - Mappings for some destructive actions (e.g. delete note/folder) are disabled by default in Settings, so you don't
+		accidentally damage your precious stuff while exploring the plugin for the first time.
+
+<details>
+<summary>File Explorer</summary>
 
 |        Key         | Action                                                                                                                                | Description                                                                                                                                                                                                                                                                                                             |                                                                                                                                           
 |:------------------:|:--------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -121,15 +131,44 @@ focused(focus lost) - just press `j` or `k` to get focus back.
 |        `f`         | create a new folder inside the current/focused folder                                                                                 |                                                                                                                                                                                                                                                                                                                         |
 |        `F`         | create a new folder inside the parent folder                                                                                          |                                                                                                                                                                                                                                                                                                                         |
 |        `r`         | rename focused node                                                                                                                   | Native: `Rename` (context menu)                                                                                                                                                                                                                                                                                         |
-|        `c`         | clone focused node                                                                                                                    | Native: `Make a copy` (context menu)                                                                                                                                                                                                                                                                                    |
+|        `c`         | clone focused node                                                                                                                    | Native: `Make a copy` (context menu).<br>Min app version required - 1.8.7                                                                                                                                                                                                                                               |
 |        `D`         | a) *if some nodes selected* - delete selected nodes<br>b) *otherwise* - delete focused node                                           | Native: `Delete` (shortcut)                                                                                                                                                                                                                                                                                             |
 |      **Misc**      |                                                                                                                                       |                                                                                                                                                                                                                                                                                                                         |
 |        `?`         | toggle help menu                                                                                                                      |                                                                                                                                                                                                                                                                                                                         |
 |        `;`         | toggle context menu for focused(or selected) node(s)                                                                                  | If you want to invoke context menu for selected nodes - the focus should be on some of selected nodes                                                                                                                                                                                                                   |
-|        `/`         | search in the focused folder                                                                                                          | Native: `Search in folder` (context menu).<br/>Changes to the native behavior: deselect search text after opening search window, so user can start typing search term immediately                                                                                                                                       |
+|        `/`         | search in the focused folder                                                                                                          | Native: `Search in folder` (context menu).<br/>Changes to the native behavior: deselect search text after opening search window, so user can start typing search term immediately.<br>Min app version required - 1.7.2                                                                                                  |
 
-> **NOTE:** mappings for some destructive actions (e.g. delete note/folder) are disabled by default in Settings,
-> so you don't accidentally damage your precious stuff while exploring the plugin for the first time.
+</details>
+
+<details>
+<summary>Search</summary>
+
+|        Key         | Action                                                           | Description                 |                                                                                                                                           
+|:------------------:|:-----------------------------------------------------------------|:----------------------------|
+| **Base Movements** |                                                                  |                             |
+|        `j`         | move down                                                        | Also works for context menu |
+|        `J`         | move down, and if a file focused - background-open focused entry |                             | 
+|        `k`         | move up                                                          | Also works for context menu |
+|        `K`         | move up, and if a file focused - background-open focused entry   |                             | 
+|        `g`         | focus the topmost root node                                      |                             |
+|        `G`         | focus the bottommost root node                                   |                             |
+|     **Folds**      |                                                                  |                             |
+|        `h`         | collapse current group                                           |                             |
+|        `l`         | expand current group, or open focused entry                      |                             |
+|        `L`         | expand current group, or background-open focused entry           |                             |
+|        `Z`         | Toggle(expand/collapse) all folds                                |                             |
+| **Opening Files**  |                                                                  |                             |
+|        `t`         | open focused entry in a new tab                                  |                             |
+|        `T`         | background-open focused entry in a new tab                       |                             |
+|        `s`         | open focused entry in a new vertical split                       |                             |
+|        `S`         | background-open focused entry in a new vertical split            |
+|        `i`         | open focused entry in a new horizontal split                     |                             |
+|        `I`         | background-open focused entry in a new horizontal split          |
+|      **Misc**      |                                                                  |                             |
+|        `?`         | toggle help menu                                                 |                             |
+|        `;`         | toggle context menu for focused(or selected) node(s)             |                             |
+
+</details>
 
 ## How It Works
 
@@ -163,7 +202,7 @@ No runtime dependencies.
 		FileExplorer,
 		so a potential implementation will require a complex path traversal logic
 - **Other tool windows**
-	- Planned to add support for other (sidebar) tool windows - bookmarks, outline, search.
+	- Planned to add support for other (sidebar) tool windows - bookmarks, outline.
 
 ## Known Bugs and Current Limitations
 
@@ -181,9 +220,15 @@ No runtime dependencies.
 		- Now, some native key bindings (e.g. scroll via `ArrowDown/ArrowUp/Page Down/Page Up`) will not work until you
 			click on Editor, or enter the source mode
 	- This feature may introduce unnecessary complexity to your workflow, if you try to build a workspace layout with
-			3+ splits using these actions. So consider using it sparingly.
+		3+ splits using these actions. So consider using it sparingly.
 
 ## Contributing
+
+I prefer to host my open-source projects on [Codeberg](https://codeberg.org), but in order to publish the plugin to the
+community store it has to be hosted on GitHub.
+
+If you prefer to contribute on Codeberg – you can find the mirror
+repository [here](https://codeberg.org/denvolok/obsidian-sidebar-keyboard-navigation).
 
 ### Issues
 
@@ -200,11 +245,10 @@ on the Obsidian official forum.
 
 ## Similar Projects
 
-- [NERDTree](https://github.com/preservim/nerdtree) - A tree explorer plugin for vim.
-- [Neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim) - Neovim plugin to manage the file system and other tree
+- [NERDTree](https://github.com/preservim/nerdtree) - A tree explorer plugin for Vim.
+- [Neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim) - Neovim plugin to manage the file system and other tree.
 	like structures.
-- [NERDTree for Intellij IDEA](https://github.com/JetBrains/ideavim/wiki/NERDTree-support)
 
 ## License
 
-[GPL-3.0](./LICENSE)
+[MIT](./LICENSE)

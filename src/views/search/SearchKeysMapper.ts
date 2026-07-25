@@ -15,7 +15,6 @@ const keysHelp = [
 	{ key: "G", action: "Focus the bottommost root node" },
 	{ key: ";", action: "Toggle context menu" },
 	{ key: "h", action: "Collapse file results" },
-	{ key: "H", action: "Collapse file results" },
 	{ key: "l", action: "Expand file results, or open file" },
 	{ key: "L", action: "Expand file results, or open file in background" },
 	{ key: "Z", action: "Collapse/Expand results" },

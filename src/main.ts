@@ -6,6 +6,7 @@ import { FileExplorerKeysMapper } from "./views/file-explorer/FileExplorerKeysMa
 import { KeysMapper } from "./KeysMapper";
 import { ViewType } from "./types";
 import { SearchKeysMapper } from "./views/search/SearchKeysMapper";
+import { Logger } from "utils/logger";
 
 export default class SidebarKeyboardNav extends PluginData {
 	private keysMappers: Record<string, KeysMapper>;
@@ -62,7 +63,9 @@ export default class SidebarKeyboardNav extends PluginData {
 
 				return;
 			})
-			.catch(console.error);
+			.catch((err: unknown) => {
+				Logger.error(err instanceof Error ? err.message : String(err));
+			});
 	};
 
 	/**
