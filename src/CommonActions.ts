@@ -120,7 +120,7 @@ export abstract class CommonActions {
 		if (domUtils.isContextMenuOpened()) {
 			const hideEvent = new KeyboardEvent("keydown", {
 				key: "Escape",
-				bubbles: true,
+				bubbles: false,
 				cancelable: true,
 			});
 			document.dispatchEvent(hideEvent);
