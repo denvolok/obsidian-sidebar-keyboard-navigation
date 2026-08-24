@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] 2026-08-24
+
+### Fixed
+
+- Handle recent changes in Obsidian v1.13 and how it handles the `Escape` key behavior in File Explorer
+  - Pressing `Escape` should switch focus back to the Editor
+  - Pressing `;` should hide opened context menu and **keep** File Explorer focused
+
 ## [1.1.0] 2026-07-25
 
 ### Added

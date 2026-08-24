@@ -75,7 +75,13 @@ export default class SidebarKeyboardNav extends PluginData {
 	 * so the most generic and performant checks should come first.
 	 */
 	private checkIsShouldHandleKeyPress(event: KeyboardEvent): boolean {
-		const isUnsupportedKeyStroke = event.ctrlKey || event.altKey || event.metaKey;
+		// TODO: use an (optimized) whitelist-based logic instead
+		const isUnsupportedKeyStroke =
+			event.ctrlKey ||
+			event.altKey ||
+			event.metaKey ||
+			event.code === "Escape" ||
+			event.code === "Tab";
 
 		if (isUnsupportedKeyStroke) {
 			return false;
