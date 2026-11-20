@@ -1,5 +1,5 @@
 import { SettingsTab } from "./plugin-data/SettingsTab";
-import { View, WorkspaceLeaf } from "obsidian";
+import { FileExplorerView, View, WorkspaceLeaf } from "obsidian";
 import { PluginData } from "./plugin-data/PluginData";
 import { mapCharacterToKeystroke } from "./utils/utils";
 import { FileExplorerKeysMapper } from "./views/file-explorer/FileExplorerKeysMapper";
@@ -10,6 +10,7 @@ import { Logger } from "utils/logger";
 
 export default class SidebarKeyboardNav extends PluginData {
 	private keysMappers: Record<string, KeysMapper>;
+	private lastActiveLeaf: WorkspaceLeaf | null = null;
 
 	public async onload(): Promise<void> {
 		await this.loadSettings();
@@ -32,6 +33,9 @@ export default class SidebarKeyboardNav extends PluginData {
 	 * Conditionally attaches/detaches "keydown" handler when a supported View is getting focused.
 	 */
 	private handleLeafChange = (leaf: WorkspaceLeaf | null): void => {
+		const previousLeaf = this.lastActiveLeaf;
+		this.lastActiveLeaf = leaf;
+
 		if (leaf == null) {
 			return;
 		}
@@ -39,6 +43,20 @@ export default class SidebarKeyboardNav extends PluginData {
 		const isSupportedView = this.keysMappers[leaf.view.getViewType()] != null;
 
 		if (isSupportedView) {
+			if (
+				leaf !== previousLeaf &&
+				leaf.view.getViewType() === "file-explorer" &&
+				this.data.settings.focusActiveFileOnExplorerFocus
+			) {
+				const view = leaf.view as FileExplorerView;
+				const activeNode = view.activeDom;
+
+				if (activeNode != null) {
+					view.revealActiveFile();
+					view.tree.setFocusedItem(activeNode);
+				}
+			}
+
 			document.addEventListener("keydown", this.handleKeyPress);
 		} else {
 			// TODO: try to make this call conditional (based on Obsidian API).

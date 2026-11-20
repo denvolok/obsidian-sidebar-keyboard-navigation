@@ -2,12 +2,14 @@ import { Plugin } from "obsidian";
 
 export interface PluginSettings {
 	excludedKeys: string;
+	focusActiveFileOnExplorerFocus: boolean;
 	enableDuplicateOpenedFilesFiltering: boolean;
 	enableBackgroundOpenVisualHelp: boolean;
 }
 
 const DEFAULT_SETTINGS: PluginSettings = {
 	excludedKeys: "Dr",
+	focusActiveFileOnExplorerFocus: false,
 	enableDuplicateOpenedFilesFiltering: false,
 	enableBackgroundOpenVisualHelp: true,
 };
