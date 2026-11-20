@@ -9,7 +9,7 @@
 		"dev": "node esbuild.config.mjs",
 		"dev:tsc": "tsc --noEmit -w",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"test": "node --test tests/CommonActions.test.mjs",
+		"test": "node --test",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint ."
 	},
