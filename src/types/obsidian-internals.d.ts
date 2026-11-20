@@ -90,6 +90,9 @@ declare module "obsidian" {
 	}
 
 	interface FileExplorerView extends View {
+		activeDom: FileExplorerFileNode | null;
+		revealActiveFile(): void;
+
 		tree: {
 			root: {
 				vChildren: { children: FileExplorerNode[] };

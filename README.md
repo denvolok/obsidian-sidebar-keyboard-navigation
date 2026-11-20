@@ -11,6 +11,8 @@ The goal of this plugin is to fill this gap for users who rely on a keyboard-bas
 
 - Use keyboard to perform common actions in the File Explorer
 - Option to disable certain keys, if they interfere with your workflow (or other plugins)
+- Optional **Focus active file on entry** setting: start keyboard navigation at the active file when entering
+	File Explorer. If no file is active, keep the previous cursor position. Disabled by default.
 - Minimal invasion to the native app behavior (and your note-taking workflow)
 - Changes(improvements) to the native app features
 	- **Avoid duplicating opened files**: if trying to open an already opened file - focus it, instead of opening a

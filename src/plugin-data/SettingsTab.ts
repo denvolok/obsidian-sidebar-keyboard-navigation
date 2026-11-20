@@ -39,6 +39,18 @@ export class SettingsTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Focus active file on entry")
+			.setDesc(
+				"Start keyboard navigation from the active file when entering the file explorer. If no file is active, keep the previous position.",
+			)
+			.addToggle((toggle) =>
+				toggle.setValue(settings.focusActiveFileOnExplorerFocus).onChange(async (value) => {
+					settings.focusActiveFileOnExplorerFocus = value;
+					await this.plugin.saveSettings();
+				}),
+			);
+
+		new Setting(containerEl)
 			.setName("Prevent opening duplicate files")
 			.setDesc(
 				"If enabled, trying to open an already opened file will switch to it instead (or, if a background-opening action used, focus the tab without switching to it).",
