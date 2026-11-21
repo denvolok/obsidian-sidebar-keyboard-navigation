@@ -1,5 +1,6 @@
 import {
 	FileExplorerView,
+	Platform,
 	requireApiVersion,
 	TFolder,
 	View,
@@ -89,7 +90,9 @@ export class FileExplorerActions extends CommonActions {
 		}
 
 		const event = new KeyboardEvent("keydown", {
-			key: "Delete",
+			// File Explorer uses Cmd+Backspace for deletion on macOS.
+			key: Platform.isMacOS ? "Backspace" : "Delete",
+			metaKey: Platform.isMacOS,
 			bubbles: true,
 			cancelable: true,
 		});
