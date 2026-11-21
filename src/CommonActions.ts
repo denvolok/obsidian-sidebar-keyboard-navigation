@@ -2,6 +2,7 @@ import {
 	App,
 	FileView,
 	MarkdownView,
+	Platform,
 	SplitDirection,
 	TFile,
 	View,
@@ -162,7 +163,8 @@ export abstract class CommonActions {
 
 		if (options.shouldFocus) {
 			const event = new KeyboardEvent("keydown", {
-				key: "Enter",
+				// Enter renames File Explorer items on macOS; Space opens them instead.
+				key: Platform.isMacOS && this.view.getViewType() === "file-explorer" ? " " : "Enter",
 				bubbles: true,
 				cancelable: true,
 			});
